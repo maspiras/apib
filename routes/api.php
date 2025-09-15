@@ -10,8 +10,8 @@ use App\Http\Controllers\AuthController;
  */
 
 // Public routes
-/* Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']); */
+Route::post('/register/{option}', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
 
 /* Route::get('/register', [AuthController::class, 'register']);
 Route::get('/login', [AuthController::class, 'login']);

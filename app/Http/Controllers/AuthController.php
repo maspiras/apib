@@ -3,20 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Host;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Auth\Events\Registered;
 
 class AuthController extends Controller
 {
     // Register new user
     public function register(Request $request)
-    {
+    {        
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
-            'host_id' => 'required|integer'
+            //'host_id' => 'required|integer'
         ]);
 
         if ($validator->fails()) {
@@ -27,11 +29,21 @@ class AuthController extends Controller
             'name' => $request['name'],
             'email' => $request['email'],
             'password' => bcrypt($request['password']),
-            'host_id' => $request['host_id'],
+            //'host_id' => $request['host_id'],
         ]);
 
         
         $token = $user->createToken('mobile-token')->plainTextToken;
+       
+        $user->assignRole('Admin');
+        if($request->option == 'host'){
+            Host::insert(['user_id' => $user->id]);
+        }
+        
+        /* User::where('id', $user->id)
+              ->update(['host_id' => $user->id]); */
+
+        event(new Registered($user));
 
         return response()->json([
             'user' => $user,

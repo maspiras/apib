@@ -9,6 +9,8 @@ use Illuminate\Notifications\Notifiable;
 
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\Host;
 
 class User extends Authenticatable
 {
@@ -49,5 +51,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function host(): HasOne
+    {
+        return $this->hasOne(Host::class);
     }
 }

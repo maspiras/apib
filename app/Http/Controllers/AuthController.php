@@ -37,7 +37,7 @@ class AuthController extends Controller
        
         $user->assignRole('Admin');
         if($request->option == 'host'){
-            Host::insert(['user_id' => $user->id]);
+            Host::insert(['id' => $user->id,'user_id' => $user->id]);
         }
         
         /* User::where('id', $user->id)
@@ -98,6 +98,8 @@ class AuthController extends Controller
     // Get profile of logged-in user
     public function profile(Request $request)
     {
-        return response()->json($request->user());
+        $data = auth()->user()->toArray();
+        $data['host_id'] = auth()->user()->host->id;        
+        return response()->json($data);
     }
 }

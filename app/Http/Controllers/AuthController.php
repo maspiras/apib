@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\DB;
+use App\Helpers\ApiResponse;
 
 class AuthController extends Controller
 {
@@ -22,9 +24,11 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            //return response()->json(['errors' => $validator->errors()], 422);
+            return ApiResponse::error(422, 'Registration failed!', ['error' => $validator->errors()]);
         }
-
+        DB::beginTransaction();
+        try {  
         $user = User::create([
             'name' => $request['name'],
             'email' => $request['email'],
@@ -36,19 +40,25 @@ class AuthController extends Controller
         $token = $user->createToken('mobile-token')->plainTextToken;
        
         $user->assignRole('Admin');
-        if($request->option == 'host'){
+        //if($request->option == 'host'){
             Host::insert(['id' => $user->id,'user_id' => $user->id]);
-        }
+        //}
         
         /* User::where('id', $user->id)
               ->update(['host_id' => $user->id]); */
 
         event(new Registered($user));
 
-        return response()->json([
+        /* return response()->json([
             'user' => $user,
             'token' => $token
-        ], 201);
+        ], 201); */
+            DB::commit(); 
+            return ApiResponse::success([], ['message' => 'Successfully registered', 'user' => $user, 'token' => $token]);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return ApiResponse::error(500, 'Registration failed!', ['error' => $e->getMessage()]);
+        }
     }
 
     // Login existing user
@@ -65,34 +75,38 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            //return response()->json(['errors' => $validator->errors()], 422);
+            return ApiResponse::error(422, 'Login failed!', ['error' => $validator->errors()]);
         }
 
         $user = User::where('email', $request['email'])->first();
 
         if (!$user || !Hash::check($request['password'], $user->password)) {
-            return response()->json([
+            /* return response()->json([
                 'message' => 'Invalid credentials'
-            ], 401);
+            ], 401); */
+            return ApiResponse::error(401, 'Invalid credentials!', ['error' => $validator->errors()]);
         }
 
         // create new token
         $token = $user->createToken('mobile-token')->plainTextToken;
 
-        return response()->json([
+        /* return response()->json([
             'user' => $user,
             'token' => $token
-        ], 200);
+        ], 200); */
+        $data = $user->toArray();
+        $data['host_id'] = $user->host->id;
+        $data['token'] = $token;
+        return ApiResponse::success($data, ['message' => 'You are logged in']);
     }
 
     // Logout (revoke current token)
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-
-        return response()->json([
-            'message' => 'Logged out'
-        ]);
+        
+        return ApiResponse::success([], ['message' => 'Logged out successfully']);
     }
 
     // Get profile of logged-in user
@@ -100,6 +114,7 @@ class AuthController extends Controller
     {
         $data = auth()->user()->toArray();
         $data['host_id'] = auth()->user()->host->id;        
-        return response()->json($data);
+        //return response()->json($data);
+        return ApiResponse::success($data);
     }
 }

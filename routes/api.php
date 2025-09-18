@@ -13,7 +13,7 @@ use App\Http\Controllers\Reservations\ReservationController;
  */
 
 // Public routes
-Route::post('/register/{option}', [AuthController::class, 'register']);
+Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 /* Route::get('/register', [AuthController::class, 'register']);

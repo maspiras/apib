@@ -24,9 +24,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [AuthController::class, 'profile']);
     
     ######### Rooms ########
-    Route::group(['prefix' => 'rooms'], function () {
+    /* Route::group(['prefix' => 'rooms'], function () {
         Route::post('/store', [RoomController::class, 'store']);        
-    });
+    }); */
+    
+    Route::apiResource('rooms', RoomController::class);
     
 });
 

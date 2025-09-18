@@ -16,15 +16,8 @@ class RoomController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $rooms = Room::where('host_id', auth()->user()->host->id)->paginate(10);
+        return ApiResponse::paginated($rooms);
     }
 
     /**
@@ -58,7 +51,6 @@ class RoomController extends Controller
             DB::rollBack();
             return ApiResponse::error(500, 'Room creation failed!', ['error' => $e->getMessage()]);
         }
-        
     }
 
     /**
@@ -66,15 +58,11 @@ class RoomController extends Controller
      */
     public function show(string $id)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        $room = Room::where('id', $id)->where('host_id', auth()->user()->host->id)->first();
+        if(!$room){
+            return ApiResponse::error(404, 'Room not found');
+        }
+        return ApiResponse::success($room);
     }
 
     /**
@@ -82,7 +70,32 @@ class RoomController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $room = Room::where('id', $id)->where('host_id', auth()->user()->host->id)->first();
+        if(!$room){
+            return ApiResponse::error(404, 'Room not found');
+        }
+        $validator = Validator::make($request->all(), [
+            'room_name' => 'required|string|max:255|min:3',
+            'room_desc' => 'string|max:1000|nullable',
+            'room_status_id' => 'required|integer|in:1,2,3' // assuming 1,2,3 are valid status IDs
+        ]);
+        if ($validator->fails()) {            
+            return ApiResponse::error(422, 'Room update failed!', ['error' => $validator->errors()]);
+        }
+        $data = [
+            'room_name' => $request->room_name,
+            'description' => $request->room_desc,
+            'room_status_id' => $request->room_status_id
+        ];
+        DB::beginTransaction();
+        try {  
+            $room->update($data);
+            DB::commit(); 
+            return ApiResponse::success([], ['message' => 'Room updated successfully']);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return ApiResponse::error(500, 'Room update failed!', ['error' => $e->getMessage()]);
+        }       
     }
 
     /**
@@ -90,6 +103,18 @@ class RoomController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $room = Room::where('id', $id)->where('host_id', auth()->user()->host->id)->first();
+        if(!$room){
+            return ApiResponse::error(404, 'Room not found');
+        }
+        DB::beginTransaction();
+        try {  
+            $room->delete();
+            DB::commit(); 
+            return ApiResponse::success([], ['message' => 'Room deleted successfully']);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return ApiResponse::error(500, 'Room deletion failed!', ['error' => $e->getMessage()]);
+        }
     }
 }

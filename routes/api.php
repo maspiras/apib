@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use Laravel\Sanctum\Sanctum;
 
 use App\Http\Controllers\Rooms\RoomController;
+use App\Http\Controllers\Reservations\ReservationController;
 /* Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -29,6 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
     }); */
     
     Route::apiResource('rooms', RoomController::class);
+    Route::apiResource('reservations', ReservationController::class);
     
 });
 

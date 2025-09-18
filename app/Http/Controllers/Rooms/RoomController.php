@@ -105,7 +105,7 @@ class RoomController extends Controller
     {
         $room = Room::where('id', $id)->where('host_id', auth()->user()->host->id)->first();
         if(!$room){
-            return ApiResponse::error(404, 'Room not found');
+            return ApiResponse::error(404, 'Room not found!');
         }
         DB::beginTransaction();
         try {  

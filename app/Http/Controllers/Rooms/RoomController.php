@@ -16,7 +16,7 @@ class RoomController extends Controller
      */
     public function index()
     {
-        $rooms = Room::where('host_id', auth()->user()->host->id)->paginate(10);
+        $rooms = Room::where('host_id', auth()->user()->host->id)->paginate(100);
         return ApiResponse::paginated($rooms);
     }
 

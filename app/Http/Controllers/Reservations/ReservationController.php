@@ -16,6 +16,8 @@ use App\Models\Reservation;
 use App\Repositories\Reservations\ReservationRepositoryInterface;
 use App\Repositories\Reservations\ReservationRepository;
 
+use Illuminate\Http\Requests\ReservationRequest;
+
 class ReservationController extends Controller
 {
     protected $reservationRepository;
@@ -39,7 +41,7 @@ class ReservationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ReservationRequest $request)
     {
         $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);
         //$reservations = $this->reservationRepository->create($request->all());                

@@ -46,14 +46,14 @@ class ReservationController extends Controller
         $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);
         //$reservations = $this->reservationRepository->create($request->all());                
 
-        $data = [
+        /* $data = [
             'room_name' => $request->room_name,
             'description' => $request->room_desc,
             'room_status_id' => 1,
             'host_id' => auth()->user()->host->id
-        ];
+        ]; */
 
-        DB::beginTransaction();
+        /* DB::beginTransaction();
         try {  
             Room::create($data);
             DB::commit(); 
@@ -61,7 +61,7 @@ class ReservationController extends Controller
         } catch(\Exception $e) {
             DB::rollBack();
             return ApiResponse::error(500, 'Room creation failed!', ['error' => $e->getMessage()]);
-        }
+        } */
     }
 
     /**

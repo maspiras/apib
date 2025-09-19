@@ -4,7 +4,7 @@ namespace App\Repositories\Reservations;
 
 use App\Models\User;
 
-class UserRepository implements UserRepositoryInterface
+class ReservationRepository implements ReservationRepositoryInterface
 {
     protected $model;
 

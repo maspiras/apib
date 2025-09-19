@@ -9,14 +9,25 @@ use App\Helpers\ApiResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
+use App\Models\Reservation;
+
+use App\Repositories\Reservations\ReservationRepositoryInterface;
+use App\Repositories\Reservations\ReservationRepository;
+
 class ReservationController extends Controller
 {
+    protected $reservationRepository;
+
+    public function __construct(ReservationRepositoryInterface $reservationRepository){
+        $this->reservationRepository = $reservationRepository;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+        $reservations = Reservation::where('host_id', auth()->user()->host->id)->paginate(100);
+        return ApiResponse::paginated($reservations);
     }
 
     /**

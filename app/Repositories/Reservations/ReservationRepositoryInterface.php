@@ -2,7 +2,7 @@
 
 namespace App\Repositories\Reservations;
 
-interface UserRepositoryInterface
+interface ReservationRepositoryInterface
 {
     public function all();
     public function find($id);

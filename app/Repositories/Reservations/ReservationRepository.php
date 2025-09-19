@@ -2,15 +2,15 @@
 
 namespace App\Repositories\Reservations;
 
-use App\Models\User;
+use App\Models\Reservation;
 
 class ReservationRepository implements ReservationRepositoryInterface
 {
     protected $model;
 
-    public function __construct(User $user)
+    public function __construct(Reservation $reservation)
     {
-        $this->model = $user;
+        $this->model = $reservation;
     }
 
     public function all()
@@ -30,14 +30,14 @@ class ReservationRepository implements ReservationRepositoryInterface
 
     public function update($id, array $data)
     {
-        $user = $this->find($id);
-        $user->update($data);
-        return $user;
+        $reservation = $this->find($id);
+        $reservation->update($data);
+        return $reservation;
     }
 
     public function delete($id)
     {
-        $user = $this->find($id);
-        return $user->delete();
+        $reservation = $this->find($id);
+        return $reservation->delete();
     }
 }

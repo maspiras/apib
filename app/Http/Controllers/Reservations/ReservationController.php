@@ -26,7 +26,11 @@ class ReservationController extends Controller
      */
     public function index()
     {
-        $reservations = Reservation::where('host_id', auth()->user()->host->id)->paginate(100);
+        #$reservations = Reservation::where('host_id', auth()->user()->host->id)->paginate(100);
+        #return ApiResponse::paginated($reservations);
+        //return ApiResponse::paginated($this->reservationRepository->all()); 
+        //return response()->json($this->reservationRepository->all());
+        $reservations = $this->reservationRepository->paginate(100);
         return ApiResponse::paginated($reservations);
     }
 

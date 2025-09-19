@@ -8,6 +8,8 @@ use App\Helpers\ApiResponse;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Carbon\CarbonPeriod;
+use Carbon\Carbon;
 
 use App\Models\Reservation;
 
@@ -39,7 +41,25 @@ class ReservationController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);
+        //$reservations = $this->reservationRepository->create($request->all());                
+
+        $data = [
+            'room_name' => $request->room_name,
+            'description' => $request->room_desc,
+            'room_status_id' => 1,
+            'host_id' => auth()->user()->host->id
+        ];
+
+        DB::beginTransaction();
+        try {  
+            Room::create($data);
+            DB::commit(); 
+            return ApiResponse::success([], ['message' => 'Reservation created successfully!']);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return ApiResponse::error(500, 'Room creation failed!', ['error' => $e->getMessage()]);
+        }
     }
 
     /**

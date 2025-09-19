@@ -15,4 +15,7 @@ abstract class BaseRepository {
     public function delete($id) {
         return $this->find($id)->delete();
     }
+    public function paginate($perPage = 15) {
+        return $this->model->paginate($perPage);
+    }
 }

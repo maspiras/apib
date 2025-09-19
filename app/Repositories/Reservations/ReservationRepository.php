@@ -3,8 +3,9 @@
 namespace App\Repositories\Reservations;
 
 use App\Models\Reservation;
+use App\Repositories\BaseRepository;
 
-class ReservationRepository implements ReservationRepositoryInterface
+class ReservationRepository extends BaseRepository implements ReservationRepositoryInterface
 {
     protected $model;
 

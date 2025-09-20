@@ -14,7 +14,8 @@ use Carbon\Carbon;
 use App\Models\Reservation;
 
 use App\Repositories\Reservations\ReservationRepositoryInterface;
-use App\Repositories\Reservations\ReservationRepository;
+//use App\Repositories\Reservations\ReservationRepository;
+use App\Services\Contracts\ReservationServiceInterface;
 
 //use Illuminate\Http\Requests\FormRequest;
 use App\Http\Requests\ReservationRequest;
@@ -22,10 +23,11 @@ use App\Http\Resources\v1\ReservationResource;
 
 class ReservationController extends Controller
 {
-    protected $reservationRepository;
+    protected $reservationRepository, $reservationService;
 
-    public function __construct(ReservationRepositoryInterface $reservationRepository){
+    public function __construct(ReservationRepositoryInterface $reservationRepository, ReservationServiceInterface $reservationService){
         $this->reservationRepository = $reservationRepository;
+        $this->reservationService = $reservationService;
     }
     /**
      * Display a listing of the resource.
@@ -48,12 +50,48 @@ class ReservationController extends Controller
         $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);
          
         $datacleaned = $request->validated();  
-        $checkin = Carbon::parse($request->checkin.' 2pm');
-        $checkout = Carbon::parse($request->checkout.' 12pm');
-        if($request->checkin == $request->checkout){
+        $checkin = Carbon::parse($datacleaned['checkin'].' 2pm');
+        $checkout = Carbon::parse($datacleaned['checkout'].' 12pm');
+        if($datacleaned['checkin'] == $datacleaned['checkout']){
           $checkout = $checkout->addDays(1);  
         }        
-        $diff = $checkin->diffInDays($checkout);
+        $diff = round($checkin->diffInDays($checkout));
+        $rateperstay = $datacleaned['rateperday'] * $diff;        
+
+        $grandtotal = $this->reservationService->getReservationGrandTotal($rateperstay, $meals=0, $services=0);
+
+        $payment_status = 1;
+        
+        $amount = 0;
+
+        $discount = null;
+        if($datacleaned['discountoption'] == 1){
+            $discount = $datacleaned['discount'];
+        }elseif($datacleaned['discountoption'] == 2){
+            $discount = ($grandtotal * $datacleaned['discount']) / 100;
+        }else{
+            $discount = 0;
+        }
+
+        $net_total = $grandtotal - $discount;
+        $balance = $net_total;
+
+        if(!empty($datacleaned['prepayment'])){
+            
+            if($datacleaned['prepayment'] >= $net_total){
+                 $payment_status = 3;
+                 $balance = 0;
+                 $amount = $net_total;
+                 
+            }else{
+                 
+                 $balance = ($net_total - $datacleaned['prepayment']);
+                 $payment_status = 2;
+                 $amount = $datacleaned['prepayment'];
+            }
+         }
+
+         
         
         //return $datacleaned;
         //return new ReservationResource($request);
@@ -78,20 +116,21 @@ class ReservationController extends Controller
                         'daystay' => $diff,
                         'meals_total' => 0, //$datacleaned['mealsamount'],
                         'additional_services_total' => 0, //$datacleaned['servicestotalamount'],
-                        'subtotal' => 10, //$datacleaned['ratesperstay'], /* server compute level*/
-                        'discount' => $datacleaned['discount'],
+                        'subtotal' => $rateperstay,
+                        'discount' => $discount,
                         'tax' => $datacleaned['tax'],
-                        'grandtotal' => 100, //$datacleaned['grandtotal'], /* server compute level*/ 
+                        'grandtotal' => $grandtotal, 
                         'currency_id' => auth()->user()->host->host_settings->currency_id,
                         'payment_type_id' => $datacleaned['typeofpayment'],
                         //'prepayment' => $datacleaned->prepayment,
                         'prepayment' => $datacleaned['prepayment'],
-                        'payment_status_id' => 1, //$datacleaned['paymentstatus'], /* server process level*/
-                        'balancepayment' => 10, //$datacleaned['balancepayment'], /* server compute level*/
+                        'payment_status_id' => $payment_status,
+                        'balancepayment' => $balance, 
                         'user_id' => auth()->user()->id,
                         'host_id' => auth()->user()->host->id,
                         'booking_status_id' => empty($datacleaned['prepayment']) ? 0 : 1,     
-                        //'created_at' => now(),
+                        'created_at' => now(),
+                        'updated_at' => now()
                     );
         
         //return $data_reservation;

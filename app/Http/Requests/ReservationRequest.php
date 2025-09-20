@@ -54,6 +54,7 @@ class ReservationRequest extends FormRequest
             //'rateperday' => 'required|regex:/^\d+(\.\d{1,2})?$/',
             'typeofpayment' => 'required|integer',
             'discount' => 'nullable|numeric:strict|min:0|decimal:0,2',
+            'discountoption' => 'nullable|numeric:strict|min:0|decimal:0,2',
             'tax' => 'nullable|numeric:strict|min:0|decimal:0,2',
             'prepayment' => 'nullable|numeric:strict|min:0|decimal:0,2',
         ];

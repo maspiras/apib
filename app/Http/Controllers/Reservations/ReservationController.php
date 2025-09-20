@@ -18,6 +18,7 @@ use App\Repositories\Reservations\ReservationRepository;
 
 //use Illuminate\Http\Requests\FormRequest;
 use App\Http\Requests\ReservationRequest;
+use App\Http\Resources\v1\ReservationResource;
 
 class ReservationController extends Controller
 {
@@ -46,9 +47,12 @@ class ReservationController extends Controller
     {
         $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);
          
-        $datacleaned = $request->validated();    
+        $datacleaned = $request->validated();  
         
-        return $datacleaned;
+        return new ReservationResource($request);
+        //return ReservationResource::collection(($datacleaned));
+        
+       //return $datacleaned;
 
         $data = array('ref_number' => $ref_number,
                         'checkin' => $datacleaned['checkin'],

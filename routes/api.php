@@ -21,16 +21,19 @@ Route::get('/login', [AuthController::class, 'login']);
  */
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/profile', [AuthController::class, 'profile']);
+    Route::middleware('usertimezone')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/profile', [AuthController::class, 'profile']);
+        
+        ######### Rooms ########
+        /* Route::group(['prefix' => 'rooms'], function () {
+            Route::post('/store', [RoomController::class, 'store']);        
+        }); */
+        
+        Route::apiResource('rooms', RoomController::class);
+        Route::apiResource('reservations', ReservationController::class);
+    });
     
-    ######### Rooms ########
-    /* Route::group(['prefix' => 'rooms'], function () {
-        Route::post('/store', [RoomController::class, 'store']);        
-    }); */
-    
-    Route::apiResource('rooms', RoomController::class);
-    Route::apiResource('reservations', ReservationController::class);
     
 });
 

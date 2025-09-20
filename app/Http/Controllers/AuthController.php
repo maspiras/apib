@@ -119,8 +119,9 @@ class AuthController extends Controller
     public function profile(Request $request)
     {
         $data = auth()->user()->toArray();
-        $data['host_id'] = auth()->user()->host->id;        
+        $data['host_id'] = auth()->user()->host->id;            
         //return response()->json($data);
+        $data['timenow'] = date('Y-m-d H:i:s a');
         return ApiResponse::success($data);
     }
 }

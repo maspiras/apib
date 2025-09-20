@@ -121,7 +121,7 @@ class AuthController extends Controller
         $data = auth()->user()->toArray();
         $data['host_id'] = auth()->user()->host->id;            
         //return response()->json($data);
-        $data['timenow'] = date('Y-m-d H:i:s a');
+        //$data['timenow'] = date('Y-m-d H:i:s a');
         return ApiResponse::success($data);
     }
 }

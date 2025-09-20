@@ -16,7 +16,9 @@ class SetUserTimezone
     public function handle(Request $request, Closure $next): Response
     {
         if (auth()->check()) {
-            date_default_timezone_set(auth()->user()->host->host_settings->timezone);
+            if(isset(auth()->user()->host->host_settings->timezone) && !empty(auth()->user()->host->host_settings->timezone)    ){
+                date_default_timezone_set(auth()->user()->host->host_settings->timezone);
+            }
         }
         return $next($request);
     }

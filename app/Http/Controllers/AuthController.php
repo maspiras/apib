@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Host;
+use App\Models\Hosts_Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -29,19 +30,24 @@ class AuthController extends Controller
         }
         DB::beginTransaction();
         try {  
-        $user = User::create([
-            'name' => $request['name'],
-            'email' => $request['email'],
-            'password' => bcrypt($request['password']),
-            //'host_id' => $request['host_id'],
-        ]);
+            $user = User::create([
+                'name' => $request['name'],
+                'email' => $request['email'],
+                'password' => bcrypt($request['password']),
+                //'host_id' => $request['host_id'],
+            ]);
 
         
         $token = $user->createToken('mobile-token')->plainTextToken;
+        $timezone = 'America/Los_Angeles';
+        if(!empty($request->timezone)){
+            $timezone = $request->timezone;
+        }
        
         $user->assignRole('Admin');
         //if($request->option == 'host'){
             Host::insert(['id' => $user->id,'user_id' => $user->id]);
+            Hosts_Setting::insert(['host_id' => $user->id, 'currency_id' => 251, 'timezone' => $timezone]);
         //}
         
         /* User::where('id', $user->id)

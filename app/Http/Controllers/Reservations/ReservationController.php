@@ -82,7 +82,7 @@ class ReservationController extends Controller
                         'created_at' => now(),
                     );
         
-        return $data;
+        //return $data;
         
 
         /* DB::beginTransaction();

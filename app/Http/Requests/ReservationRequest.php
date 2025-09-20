@@ -68,7 +68,7 @@ class ReservationRequest extends FormRequest
             'email.max' => 'Email must not exceed 255 characters',
             'phone.string' => 'Phone must be a string',
             'phone.max' => 'Phone must not exceed 20 characters',   
-            'rooms.*.unique' => 'One or more selected rooms are invalid',
+            //'rooms.*.unique' => 'One or more selected rooms are invalid',
             'rooms.*.exists' => 'selected room/s do not exist or not available',
             
             //'checkin' => 'required|date_format:Y-m-d|date_format:m/d/Y'   

@@ -16,7 +16,8 @@ use App\Models\Reservation;
 use App\Repositories\Reservations\ReservationRepositoryInterface;
 use App\Repositories\Reservations\ReservationRepository;
 
-use Illuminate\Http\Requests\ReservationRequest;
+//use Illuminate\Http\Requests\FormRequest;
+use App\Http\Requests\ReservationRequest;
 
 class ReservationController extends Controller
 {
@@ -44,18 +45,50 @@ class ReservationController extends Controller
     public function store(ReservationRequest $request)
     {
         $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);
-        //$reservations = $this->reservationRepository->create($request->all());                
+         
+        $datacleaned = $request->validated();    
+        
+        return $datacleaned;
 
-        /* $data = [
-            'room_name' => $request->room_name,
-            'description' => $request->room_desc,
-            'room_status_id' => 1,
-            'host_id' => auth()->user()->host->id
-        ]; */
+        $data = array('ref_number' => $ref_number,
+                        'checkin' => $datacleaned['checkin'],
+                        'checkout' => $datacleaned['checkout'],
+                        'adults' => $datacleaned['adults'],
+                        'childs' => $datacleaned['childs'],
+                        'pets' => $datacleaned['pets'],
+                        'fullname' => $datacleaned['fullname'],
+                        'phone' => $datacleaned['phone'],
+                        'email' => $datacleaned['email'],
+                        'additional_info' => $datacleaned['additionalinformation'],
+                        'booking_source_id' => $datacleaned['bookingsource_id'],
+                        'doorcode' => 0,
+                        'rateperday' => $datacleaned['ratesperday'],
+                        'daystay' => $datacleaned['daystay'], /* server compute level*/
+                        'meals_total' => $datacleaned['mealsamount'],
+                        'additional_services_total' => $datacleaned['servicestotalamount'],
+                        'subtotal' => $datacleaned['ratesperstay'], /* server compute level*/
+                        'discount' => $datacleaned['discount'],
+                        //'tax' => $datacleaned->tax,
+                        'grandtotal' => $datacleaned['grandtotal'], /* server compute level*/ 
+                        'currency_id' => $datacleaned['currency'],
+                        'payment_type_id' => $datacleaned['typeofpayment'],
+                        //'prepayment' => $datacleaned->prepayment,
+                        'prepayment' => $datacleaned['prepayment'],
+                        'payment_status_id' => $datacleaned['paymentstatus'], /* server process level*/
+                        'balancepayment' => $datacleaned['balancepayment'], /* server compute level*/
+                        'user_id' => auth()->user()->id,
+                        'host_id' => auth()->user()->host->id,
+                        'booking_status_id' => empty($datacleaned['prepayment']) ? 0 : 1,     
+                        'created_at' => now(),
+                    );
+        
+        return $data;
+        
 
         /* DB::beginTransaction();
         try {  
-            Room::create($data);
+            //$this->reservationRepository->create($request->validated());
+            $reservation_id = $this->reservationRepository->insertGetId($data);
             DB::commit(); 
             return ApiResponse::success([], ['message' => 'Reservation created successfully!']);
         } catch(\Exception $e) {

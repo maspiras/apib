@@ -48,15 +48,22 @@ class ReservationController extends Controller
         $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);
          
         $datacleaned = $request->validated();  
+        $checkin = Carbon::parse($request->checkin.' 2pm');
+        $checkout = Carbon::parse($request->checkout.' 12pm');
+        if($request->checkin == $request->checkout){
+          $checkout = $checkout->addDays(1);  
+        }        
+        $diff = $checkin->diffInDays($checkout);
         
-        return new ReservationResource($request);
+        //return $datacleaned;
+        //return new ReservationResource($request);
         //return ReservationResource::collection(($datacleaned));
         
-       //return $datacleaned;
+       //return $datacleaned->additionalinformation;
 
-        $data = array('ref_number' => $ref_number,
-                        'checkin' => $datacleaned['checkin'],
-                        'checkout' => $datacleaned['checkout'],
+        $data_reservation = array('ref_number' => $ref_number,
+                        'checkin' => $checkin, //$datacleaned['checkin'],
+                        'checkout' => $checkout, //$datacleaned['checkout'],
                         'adults' => $datacleaned['adults'],
                         'childs' => $datacleaned['childs'],
                         'pets' => $datacleaned['pets'],
@@ -64,41 +71,42 @@ class ReservationController extends Controller
                         'phone' => $datacleaned['phone'],
                         'email' => $datacleaned['email'],
                         'additional_info' => $datacleaned['additionalinformation'],
+                        //'rooms' => $datacleaned['rooms'],
                         'booking_source_id' => $datacleaned['bookingsource_id'],
                         'doorcode' => 0,
-                        'rateperday' => $datacleaned['ratesperday'],
-                        'daystay' => $datacleaned['daystay'], /* server compute level*/
-                        'meals_total' => $datacleaned['mealsamount'],
-                        'additional_services_total' => $datacleaned['servicestotalamount'],
-                        'subtotal' => $datacleaned['ratesperstay'], /* server compute level*/
+                        'rateperday' => $datacleaned['rateperday'],
+                        'daystay' => $diff,
+                        'meals_total' => 0, //$datacleaned['mealsamount'],
+                        'additional_services_total' => 0, //$datacleaned['servicestotalamount'],
+                        'subtotal' => 10, //$datacleaned['ratesperstay'], /* server compute level*/
                         'discount' => $datacleaned['discount'],
-                        //'tax' => $datacleaned->tax,
-                        'grandtotal' => $datacleaned['grandtotal'], /* server compute level*/ 
-                        'currency_id' => $datacleaned['currency'],
+                        'tax' => $datacleaned['tax'],
+                        'grandtotal' => 100, //$datacleaned['grandtotal'], /* server compute level*/ 
+                        'currency_id' => auth()->user()->host->host_settings->currency_id,
                         'payment_type_id' => $datacleaned['typeofpayment'],
                         //'prepayment' => $datacleaned->prepayment,
                         'prepayment' => $datacleaned['prepayment'],
-                        'payment_status_id' => $datacleaned['paymentstatus'], /* server process level*/
-                        'balancepayment' => $datacleaned['balancepayment'], /* server compute level*/
+                        'payment_status_id' => 1, //$datacleaned['paymentstatus'], /* server process level*/
+                        'balancepayment' => 10, //$datacleaned['balancepayment'], /* server compute level*/
                         'user_id' => auth()->user()->id,
                         'host_id' => auth()->user()->host->id,
                         'booking_status_id' => empty($datacleaned['prepayment']) ? 0 : 1,     
-                        'created_at' => now(),
+                        //'created_at' => now(),
                     );
         
-        //return $data;
-        
+        //return $data_reservation;
+        //return new ReservationResource($data_reservation);
 
-        /* DB::beginTransaction();
+        DB::beginTransaction();
         try {  
             //$this->reservationRepository->create($request->validated());
-            $reservation_id = $this->reservationRepository->insertGetId($data);
+            $reservation_id = $this->reservationRepository->insertGetId($data_reservation);
             DB::commit(); 
             return ApiResponse::success([], ['message' => 'Reservation created successfully!']);
         } catch(\Exception $e) {
             DB::rollBack();
             return ApiResponse::error(500, 'Room creation failed!', ['error' => $e->getMessage()]);
-        } */
+        }
     }
 
     /**

@@ -17,13 +17,18 @@ class ReservationResource extends JsonResource
         //return parent::toArray($request);
         return [
                
-            'checkin' => $this->checkin,
-            'checkout' => $this->checkout,            
-            'adults' => $this->adults,
+            'checkin' => $request['checkin'], //$this->checkin,
+            'checkout' => $request['checkout'], //$this->checkout,            
+            /* 'adults' => $this->adults,
             'childs' => $this->childs,
             'pets' => $this->pets,
-            'fullname' => $this->fullname,
-            'phone' => $this->phone, 
+            'fullname' => $this->fullname,            
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'additionalinformation' => $this->additionalinformation,
+            'room' => $this->rooms,
+            'ratesperday' => $this->ratesperday,
+            'discount' => $this->discount, */
         ];
     }
 }

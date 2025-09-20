@@ -36,8 +36,9 @@ class ReservationRequest extends FormRequest
             'childs' => 'nullable|integer:strict|max:100',
             'pets' => 'nullable|integer:strict|max:200',
             'fullname' => 'required|string|max:255|min:3',
-            'email' => 'email|max:255',
             'phone' => 'nullable|string|max:20',
+            'email' => 'email|max:255',
+            'additionalinformation' => 'nullable|string|max:1000',
             'rooms' => 'required|array', // Ensure the input is an array
             'rooms.*' => 'required|numeric:strict|distinct', // Each item must be a distinct existing room ID
             'rooms.*' => [
@@ -48,11 +49,13 @@ class ReservationRequest extends FormRequest
                         }), 
                     
                 ],
-            'ratesperday' => 'required|numeric:strict|min:0|decimal:0,2',
-            //'ratesperday' => 'required|regex:/^\d+(\.\d{1,2})?$/',
-            'discount' => 'nullable|numeric:strict|min:0|decimal:2',
-            'tax' => 'nullable|numeric:strict|min:0|decimal:2',
-            'prepayment' => 'nullable|numeric:strict|min:0|decimal:2',
+            'bookingsource_id' => 'required|integer',            
+            'rateperday' => 'required|numeric:strict|min:1|decimal:0,2',
+            //'rateperday' => 'required|regex:/^\d+(\.\d{1,2})?$/',
+            'typeofpayment' => 'required|integer',
+            'discount' => 'nullable|numeric:strict|min:0|decimal:0,2',
+            'tax' => 'nullable|numeric:strict|min:0|decimal:0,2',
+            'prepayment' => 'nullable|numeric:strict|min:0|decimal:0,2',
         ];
     }
 

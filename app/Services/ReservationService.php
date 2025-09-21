@@ -21,7 +21,8 @@ class ReservationService implements ReservationServiceInterface
 
     public function getAll()
     {
-        return Reservation::all();
+        //return Reservation::all();
+        return $this->reservationRepository->paginate(100);        
     }
 
     public function getById(int $id): ?Reservation

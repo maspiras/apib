@@ -10,6 +10,8 @@ use App\Repositories\Reservations\ReservationRepositoryInterface;
 use Carbon\CarbonPeriod;
 use Carbon\Carbon;
 
+use Illuminate\Support\Facades\DB;
+
 class ReservationService implements ReservationServiceInterface
 {
     protected $reservationRepository;

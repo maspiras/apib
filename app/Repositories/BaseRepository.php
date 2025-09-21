@@ -20,7 +20,8 @@ abstract class BaseRepository {
         return $this->find($id)->delete();
     }
     public function paginate($perPage = 15) {
-        return $this->model->paginate($perPage);
+        //return $this->model->paginate($perPage);
+        return $this->model->where('host_id', auth()->user()->host->id)->paginate($perPage);
     }
 
     public function latest(){
@@ -75,14 +76,15 @@ abstract class BaseRepository {
      *
      * @return mixed
      */
-    public function getPaginate($n)
+    public function getPaginate($n=15)
     {
         return $this->model->where('host_id', auth()->user()->host->id)->paginate($n);
     }
 
-    public function simplePaginate($n)
+    public function simplePaginate($n=15)
     {
-        return $this->model->simplePaginate($n);
+        //return $this->model->simplePaginate($n);
+         return $this->model->where('host_id', auth()->user()->host->id)->simplePaginate($n);
     }
 
     /**

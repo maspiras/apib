@@ -15,6 +15,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(ReservationRepositoryInterface::class, ReservationRepository::class);
+        $this->app->bind(ReservedRoomRepositoryInterface::class, ReservedRoomRepository::class);
+
         $this->app->bind(\App\Services\Contracts\ReservationServiceInterface::class, \App\Services\ReservationService::class);
     }
 

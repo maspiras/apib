@@ -12,6 +12,10 @@ use Carbon\Carbon;
 
 use Illuminate\Support\Facades\DB;
 
+use App\Http\Resources\v1\ReservationResource;
+//use Illuminate\Database\Eloquent\Collection;
+
+
 class ReservationService implements ReservationServiceInterface
 {
     protected $reservationRepository;
@@ -22,7 +26,10 @@ class ReservationService implements ReservationServiceInterface
     public function getAll()
     {
         //return Reservation::all();
-        return $this->reservationRepository->paginate(100);        
+        //return $this->reservationRepository->paginate(100); 
+        //return new ReservationResource($this->reservationRepository->paginate(100));       
+        //return new ReservationResource(Reservation::all());       
+        return ReservationResource::collection($this->reservationRepository->paginate(100));
     }
 
     public function getById(int $id): ?Reservation
@@ -119,12 +126,11 @@ class ReservationService implements ReservationServiceInterface
                         'updated_at' => now() */
                     );
         
-        //return $data_reservation;
+        
         //return new ReservationResource($data_reservation);
-
        
             //return $this->reservationRepository->insertGetId($data_reservation);
-            return $this->reservationRepository->create($data_reservation);
+        return $this->reservationRepository->create($data_reservation);
        
     }
 

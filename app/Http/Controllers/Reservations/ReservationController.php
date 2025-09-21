@@ -13,7 +13,7 @@ use App\Services\Contracts\ReservationServiceInterface;
 
 //use Illuminate\Http\Requests\FormRequest;
 use App\Http\Requests\ReservationRequest;
-use App\Http\Resources\v1\ReservationResource;
+
 
 class ReservationController extends Controller
 {
@@ -33,6 +33,7 @@ class ReservationController extends Controller
         //return response()->json($this->reservationRepository->all());
         /* $reservations = $this->reservationRepository->paginate(100);        
         return ApiResponse::paginated($reservations); */
+        //return ApiResponse::paginated($this->reservationService->getAll());
         return ApiResponse::paginated($this->reservationService->getAll());
     }
 

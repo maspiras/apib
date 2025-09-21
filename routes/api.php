@@ -20,8 +20,8 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/login', [AuthController::class, 'login']);
  */
 // Protected routes
-Route::middleware('auth:sanctum')->group(function () {
-    Route::middleware('usertimezone')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:60,1', 'usertimezone'])->group(function () {
+    //Route::middleware('usertimezone')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/profile', [AuthController::class, 'profile']);
         
@@ -32,7 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
         
         Route::apiResource('rooms', RoomController::class);
         Route::apiResource('reservations', ReservationController::class);
-    });
+    //});
     
     
 });

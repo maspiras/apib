@@ -15,13 +15,13 @@ class Reservation extends Model
     use HasFactory;
     //use SoftDeletes;
     public $timestamps = true;
-    /* protected $fillable = [
+    protected $fillable = [
         'ref_number','checkin', 'checkout', 'adults', 'childs', 'pets', 'fullname',
         'phone', 'email', 'additional_info', 'booking_source_id', 'doorcode',
-        'rateperday', 'daystay', 'subtotal', 'grandtotal', 'currency_id',
+        'rateperday', 'daystay', 'subtotal', 'grandtotal','discount','tax', 'currency_id',
         'payment_type_id', 'prepayment', 'payment_status_id', 'balancepayment',
         'user_id', 'host_id', 'booking_status_id', 'created_at'
-    ]; */
+    ];
 
     
     public function user(): BelongsTo

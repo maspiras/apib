@@ -8,12 +8,11 @@ use App\Helpers\ApiResponse;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Carbon\CarbonPeriod;
-use Carbon\Carbon;
+
 
 use App\Models\Reservation;
 
-use App\Repositories\Reservations\ReservationRepositoryInterface;
+//use App\Repositories\Reservations\ReservationRepositoryInterface;
 //use App\Repositories\Reservations\ReservationRepository;
 use App\Services\Contracts\ReservationServiceInterface;
 
@@ -23,10 +22,9 @@ use App\Http\Resources\v1\ReservationResource;
 
 class ReservationController extends Controller
 {
-    protected $reservationRepository, $reservationService;
+    protected $reservationService;
 
-    public function __construct(ReservationRepositoryInterface $reservationRepository, ReservationServiceInterface $reservationService){
-        $this->reservationRepository = $reservationRepository;
+    public function __construct(ReservationServiceInterface $reservationService){        
         $this->reservationService = $reservationService;
     }
     /**
@@ -47,99 +45,13 @@ class ReservationController extends Controller
      */
     public function store(ReservationRequest $request)
     {
-        $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);
-         
         $datacleaned = $request->validated();  
-        $checkin = Carbon::parse($datacleaned['checkin'].' 2pm');
-        $checkout = Carbon::parse($datacleaned['checkout'].' 12pm');
-        if($datacleaned['checkin'] == $datacleaned['checkout']){
-          $checkout = $checkout->addDays(1);  
-        }        
-        $diff = round($checkin->diffInDays($checkout));
-        $rateperstay = $datacleaned['rateperday'] * $diff;        
-
-        $grandtotal = $this->reservationService->getReservationGrandTotal($rateperstay, $meals=0, $services=0);
-
-        $payment_status = 1;
         
-        $amount = 0;
-
-        $discount = null;
-        if($datacleaned['discountoption'] == 1){
-            $discount = $datacleaned['discount'];
-        }elseif($datacleaned['discountoption'] == 2){
-            $discount = ($grandtotal * $datacleaned['discount']) / 100;
-        }else{
-            $discount = 0;
-        }
-
-        $net_total = $grandtotal - $discount;
-        $balance = $net_total;
-
-        if(!empty($datacleaned['prepayment'])){
-            
-            if($datacleaned['prepayment'] >= $net_total){
-                 $payment_status = 3;
-                 $balance = 0;
-                 $amount = $net_total;
-                 
-            }else{
-                 
-                 $balance = ($net_total - $datacleaned['prepayment']);
-                 $payment_status = 2;
-                 $amount = $datacleaned['prepayment'];
-            }
-         }
-
-         
-        
-        //return $datacleaned;
-        //return new ReservationResource($request);
-        //return ReservationResource::collection(($datacleaned));
-        
-       //return $datacleaned->additionalinformation;
-
-        $data_reservation = array('ref_number' => $ref_number,
-                        'checkin' => $checkin, //$datacleaned['checkin'],
-                        'checkout' => $checkout, //$datacleaned['checkout'],
-                        'adults' => $datacleaned['adults'],
-                        'childs' => $datacleaned['childs'],
-                        'pets' => $datacleaned['pets'],
-                        'fullname' => $datacleaned['fullname'],
-                        'phone' => $datacleaned['phone'],
-                        'email' => $datacleaned['email'],
-                        'additional_info' => $datacleaned['additionalinformation'],
-                        //'rooms' => $datacleaned['rooms'],
-                        'booking_source_id' => $datacleaned['bookingsource_id'],
-                        'doorcode' => 0,
-                        'rateperday' => $datacleaned['rateperday'],
-                        'daystay' => $diff,
-                        'meals_total' => 0, //$datacleaned['mealsamount'],
-                        'additional_services_total' => 0, //$datacleaned['servicestotalamount'],
-                        'subtotal' => $rateperstay,
-                        'discount' => $discount,
-                        'tax' => $datacleaned['tax'],
-                        'grandtotal' => $grandtotal, 
-                        'currency_id' => auth()->user()->host->host_settings->currency_id,
-                        'payment_type_id' => $datacleaned['typeofpayment'],
-                        //'prepayment' => $datacleaned->prepayment,
-                        'prepayment' => $datacleaned['prepayment'],
-                        'payment_status_id' => $payment_status,
-                        'balancepayment' => $balance, 
-                        'user_id' => auth()->user()->id,
-                        'host_id' => auth()->user()->host->id,
-                        'booking_status_id' => empty($datacleaned['prepayment']) ? 0 : 1,     
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    );
-        
-        //return $data_reservation;
-        //return new ReservationResource($data_reservation);
-
         DB::beginTransaction();
         try {  
             //$this->reservationRepository->create($request->validated());
-            $reservation_id = $this->reservationRepository->insertGetId($data_reservation);
+            $reservation = $this->reservationService->create($datacleaned) ;
+            //$reservation_id = $this->reservationRepository->insertGetId($data_reservation);
             DB::commit(); 
             return ApiResponse::success([], ['message' => 'Reservation created successfully!']);
         } catch(\Exception $e) {

@@ -7,6 +7,7 @@ use App\Services\Contracts\ReservationServiceInterface;
 
 use App\Repositories\Reservations\ReservationRepositoryInterface;
 use App\Repositories\Reservations\ReservedRoomRepositoryInterface;
+use App\Repositories\Reservations\PaymentRepositoryInterface;
 
 use Carbon\CarbonPeriod;
 use Carbon\Carbon;
@@ -20,12 +21,12 @@ use App\Http\Resources\v1\ReservationResource;
 
 class ReservationService implements ReservationServiceInterface
 {
-    protected $reservationRepository, $reservedRoomRepository;
+    protected $reservationRepository, $reservedRoomRepository, $paymentRepository;
 
-    public function __construct(ReservationRepositoryInterface $reservationRepository, ReservedRoomRepositoryInterface $reservedRoomRepository){
+    public function __construct(ReservationRepositoryInterface $reservationRepository, ReservedRoomRepositoryInterface $reservedRoomRepository, PaymentRepositoryInterface $paymentRepository){
         $this->reservationRepository = $reservationRepository;
         $this->reservedRoomRepository = $reservedRoomRepository;
-        
+        $this->paymentRepository = $paymentRepository;        
     }
 
     public function getAll()
@@ -45,7 +46,9 @@ class ReservationService implements ReservationServiceInterface
     public function create(array $datacleaned): Reservation
     {
         //return Reservation::create($data);
-        $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);         
+        $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);  
+        //urrency_id = auth()->user()->host->host_settings->currency_id; 
+        $user = auth()->user();    
         
         $checkin = Carbon::parse($datacleaned['checkin'].' 2pm');
         $checkout = Carbon::parse($datacleaned['checkout'].' 12pm');
@@ -118,24 +121,23 @@ class ReservationService implements ReservationServiceInterface
                         'discount' => $discount,
                         'tax' => $datacleaned['tax'],
                         'grandtotal' => $grandtotal, 
-                        'currency_id' => auth()->user()->host->host_settings->currency_id,
+                        'currency_id' => $user->host->host_settings->currency_id,
                         'payment_type_id' => $datacleaned['typeofpayment'],
                         //'prepayment' => $datacleaned->prepayment,
                         'prepayment' => $datacleaned['prepayment'],
                         'payment_status_id' => $payment_status,
                         'balancepayment' => $balance, 
-                        'user_id' => auth()->user()->id,
-                        'host_id' => auth()->user()->host->id,
+                        'user_id' => $user->id,
+                        'host_id' => $user->host->id,
                         'booking_status_id' => empty($datacleaned['prepayment']) ? 0 : 1,     
                         /* 'created_at' => now(),
                         'updated_at' => now() */
                     );
         
         
-        //return new ReservationResource($data_reservation);
-       
-            //return $this->reservationRepository->insertGetId($data_reservation);
-        $reservation = $this->reservationRepository->create($data_reservation);
+        //return new ReservationResource($data_reservation);       
+        
+        $reservation = $this->reservationRepository->create($data_reservation); // create reservation
         
         if ($this->reservedRoomRepository->roomIsBooked($datacleaned['rooms'], $checkin, $checkout)) {
             throw new Exception("Room/s is/are not available for the selected dates.");
@@ -146,10 +148,26 @@ class ReservationService implements ReservationServiceInterface
             $datareservedroom[] = ['reservation_id' => $reservation->id, 'room_id' => $bookedrooms, 'checkin' => $checkin, 'checkout' => $checkout];
         }
         
-        $this->reservedRoomRepository->massiveInsert($datareservedroom);
+        $this->reservedRoomRepository->massiveInsert($datareservedroom); // assign rooms to reserved_rooms table
 
-        
-        
+        $dataPayment = array(
+                'ref_number' => $ref_number,
+                'host_id' => $user->host->id,
+                'user_id' => $user->id,
+                'reservation_id' => $reservation->id,
+                'amount' => $amount,
+                'balance' => $balance,
+                'currency_id' => $user->host->host_settings->currency_id,
+                'payment_type_id' => $datacleaned['typeofpayment'],
+                'action_type_id' => $amount >= $grandtotal? 3:1,
+                'added_on' => now(),
+            );  
+
+        //(!$this->isEmpty($datacleaned['prepayment']) && $amount > 0){
+        if(!empty($datacleaned['prepayment']) && $amount > 0){
+            $this->paymentRepository->insert($dataPayment); // insert payment if there is prepayment
+        }
+
         return $reservation;
        
     }

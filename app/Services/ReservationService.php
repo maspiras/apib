@@ -6,11 +6,13 @@ use App\Models\Reservation;
 use App\Services\Contracts\ReservationServiceInterface;
 
 use App\Repositories\Reservations\ReservationRepositoryInterface;
+use App\Repositories\Reservations\ReservedRoomRepositoryInterface;
 
 use Carbon\CarbonPeriod;
 use Carbon\Carbon;
 
 use Illuminate\Support\Facades\DB;
+use Exception;
 
 use App\Http\Resources\v1\ReservationResource;
 //use Illuminate\Database\Eloquent\Collection;
@@ -18,9 +20,12 @@ use App\Http\Resources\v1\ReservationResource;
 
 class ReservationService implements ReservationServiceInterface
 {
-    protected $reservationRepository;
-    public function __construct(ReservationRepositoryInterface $reservationRepository){
+    protected $reservationRepository, $reservedRoomRepository;
+
+    public function __construct(ReservationRepositoryInterface $reservationRepository, ReservedRoomRepositoryInterface $reservedRoomRepository){
         $this->reservationRepository = $reservationRepository;
+        $this->reservedRoomRepository = $reservedRoomRepository;
+        
     }
 
     public function getAll()
@@ -130,7 +135,22 @@ class ReservationService implements ReservationServiceInterface
         //return new ReservationResource($data_reservation);
        
             //return $this->reservationRepository->insertGetId($data_reservation);
-        return $this->reservationRepository->create($data_reservation);
+        $reservation = $this->reservationRepository->create($data_reservation);
+        
+        if ($this->reservedRoomRepository->roomIsBooked($datacleaned['rooms'], $checkin, $checkout)) {
+            throw new Exception("Room/s is/are not available for the selected dates.");
+        }
+        
+        $datareservedroom = [];
+        foreach( $datacleaned['rooms'] as $bookedrooms){                    
+            $datareservedroom[] = ['reservation_id' => $reservation->id, 'room_id' => $bookedrooms, 'checkin' => $checkin, 'checkout' => $checkout];
+        }
+        
+        $this->reservedRoomRepository->massiveInsert($datareservedroom);
+
+        
+        
+        return $reservation;
        
     }
 

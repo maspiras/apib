@@ -53,7 +53,7 @@ class ReservationController extends Controller
             return ApiResponse::success([], ['message' => 'Reservation created successfully!']);
         } catch(\Exception $e) {
             DB::rollBack();
-            return ApiResponse::error(500, 'Room creation failed!', ['error' => $e->getMessage()]);
+            return ApiResponse::error(500, 'Reservation creation failed!', ['error' => $e->getMessage()]);
         }
     }
 

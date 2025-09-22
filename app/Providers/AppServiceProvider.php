@@ -7,6 +7,9 @@ use Illuminate\Support\ServiceProvider;
 use App\Repositories\Reservations\ReservationRepositoryInterface;
 use App\Repositories\Reservations\ReservationRepository;
 
+use App\Repositories\Reservations\ReservedRoomRepositoryInterface;
+use App\Repositories\Reservations\ReservedRoomRepository;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**

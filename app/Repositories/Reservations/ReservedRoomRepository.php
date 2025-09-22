@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Repositories\Reservations;
 
 use App\Models\ReservedRoomv2;
 use App\Repositories\BaseRepository;
+use App\Repositories\Reservations\ReservedRoomRepositoryInterface;
 
 class ReservedRoomRepository extends BaseRepository implements ReservedRoomRepositoryInterface
 {
@@ -14,31 +15,14 @@ class ReservedRoomRepository extends BaseRepository implements ReservedRoomRepos
         $this->model = $model;
     }
 
-    public function all()
+    public function roomIsBooked(array $roomId, string $checkIn, string $checkOut)
     {
-        return $this->model->all();
-    }
-
-    public function find($id)
-    {
-        return $this->model->findOrFail($id);
-    }
-
-    public function create(array $data)
-    {
-        return $this->model->create($data);
-    }
-
-    public function update($id, array $data)
-    {
-        $record = $this->find($id);
-        $record->update($data);
-        return $record;
-    }
-
-    public function delete($id)
-    {
-        $record = $this->find($id);
-        return $record->delete();
+        return ReservedRoomv2::whereIn('room_id', $roomId)
+                        ->where(function ($q) use ($checkIn, $checkOut) {
+                          /* $q->whereBetween('checkin', [$checkIn, $checkOut])
+                            ->orWhereBetween('checkout', [$checkIn, $checkOut]); */
+                            $q->where('checkin', '<', $checkOut)
+                              ->where('checkout', '>', $checkIn);
+                      })->exists();
     }
 }

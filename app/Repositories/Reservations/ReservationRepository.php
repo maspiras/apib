@@ -13,6 +13,7 @@ class ReservationRepository extends BaseRepository implements ReservationReposit
     {
         $this->model = $reservation;
     }
+    /*
 
     public function all()
     {
@@ -40,5 +41,5 @@ class ReservationRepository extends BaseRepository implements ReservationReposit
     {
         $reservation = $this->find($id);
         return $reservation->delete();
-    }
+    } */
 }

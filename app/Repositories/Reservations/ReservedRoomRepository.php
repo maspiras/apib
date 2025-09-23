@@ -17,12 +17,15 @@ class ReservedRoomRepository extends BaseRepository implements ReservedRoomRepos
 
     public function roomIsBooked(array $roomId, string $checkIn, string $checkOut)
     {
-        return ReservedRoomv2::whereIn('room_id', $roomId)
+        return ReservedRoomv2::whereIn('reserved_roomv2.room_id', $roomId)
+                        ->leftJoin('rooms', 'rooms.id', '=', 'reserved_roomv2.room_id')
                         ->where(function ($q) use ($checkIn, $checkOut) {
                           /* $q->whereBetween('checkin', [$checkIn, $checkOut])
                             ->orWhereBetween('checkout', [$checkIn, $checkOut]); */
-                            $q->where('checkin', '<', $checkOut)
-                              ->where('checkout', '>', $checkIn);
-                      })->exists();
+                            $q->where('reserved_roomv2.checkin', '<', $checkOut)
+                              ->where('reserved_roomv2.checkout', '>', $checkIn);
+                      })
+                    //->exists();
+                      ->get();
     }
 }

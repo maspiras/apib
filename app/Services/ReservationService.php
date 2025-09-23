@@ -50,12 +50,18 @@ class ReservationService implements ReservationServiceInterface
         //urrency_id = auth()->user()->host->host_settings->currency_id; 
         $user = auth()->user();    
         
-        $checkin = Carbon::parse($datacleaned['checkin'].' 2pm');
-        $checkout = Carbon::parse($datacleaned['checkout'].' 12pm');
-        if($datacleaned['checkin'] == $datacleaned['checkout']){
+        /* $checkin = Carbon::parse($datacleaned['checkin'].' 2pm');
+        $checkout = Carbon::parse($datacleaned['checkout'].' 12pm'); */
+        $checkin = Carbon::parse($datacleaned['checkin']);
+        $checkout = Carbon::parse($datacleaned['checkout']);
+
+        /* if($datacleaned['checkin'] == $datacleaned['checkout']){
           $checkout = $checkout->addDays(1);  
-        }        
+        } */        
         $diff = round($checkin->diffInDays($checkout));
+        /* if($diff <= 1){
+            $checkout = $checkout->addDays(1);  
+        } */
         $rateperstay = $datacleaned['rateperday'] * $diff;        
 
         $grandtotal = $this->getReservationGrandTotal($rateperstay, $meals=0, $services=0);
@@ -139,8 +145,19 @@ class ReservationService implements ReservationServiceInterface
         
         $reservation = $this->reservationRepository->create($data_reservation); // create reservation
         
-        if ($this->reservedRoomRepository->roomIsBooked($datacleaned['rooms'], $checkin, $checkout)) {
+        /* if ($this->reservedRoomRepository->roomIsBooked($datacleaned['rooms'], $checkin, $checkout)) {
             throw new Exception("Room/s is/are not available for the selected dates.");
+        } */
+       $roomsBook = $this->reservedRoomRepository->roomIsBooked($datacleaned['rooms'], $checkin, $checkout);
+       if(count($roomsBook) == 1){            
+            throw new Exception("This ".$roomsBook[0]->room_name." is not available for the selected dates.");
+        }elseif(count($roomsBook) > 1){
+            $rooms= [];
+            foreach($roomsBook as $room){
+                $rooms[] = $room->room_name;
+            }
+            $roomlist = implode(", ", $rooms);
+            throw new Exception("These rooms ($roomlist) are not available for the selected dates.");
         }
         
         $datareservedroom = [];

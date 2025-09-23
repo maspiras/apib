@@ -13,7 +13,7 @@ use App\Services\Contracts\ReservationServiceInterface;
 
 //use Illuminate\Http\Requests\FormRequest;
 use App\Http\Requests\ReservationRequest;
-
+use Carbon\Carbon;
 
 class ReservationController extends Controller
 {
@@ -43,6 +43,26 @@ class ReservationController extends Controller
     public function store(ReservationRequest $request)
     {
         $datacleaned = $request->validated();  
+
+        /* $checkin = Carbon::parse($datacleaned['checkin']);
+        $checkout = Carbon::parse($datacleaned['checkout']);
+        return array('result' => $checkout->lessThanOrEqualTo($checkin)); */
+        
+        //$format = 'm/d/Y h:i A';
+        /* $date = Carbon::createFromFormat($format, $datacleaned['checkout']);
+        return $date['date'];//->format($format); */
+        //return Carbon::parse('10/09/2025 asd...');
+        /* carbon = Carbon::parse('10/09/2025 aaa.sd..');
+        try{
+            return $carbon;
+        } catch (\Exception $e) {
+            return 'Error: ' . $e->getMessage();
+        } */
+        /* if($carbon !== false && empty(Carbon::getLastErrors()['errors'])){
+            return $carbon;
+        }
+
+        throw new \InvalidArgumentException("Invalidat date format {$carbon}"); */
         
         DB::beginTransaction();
         try {  

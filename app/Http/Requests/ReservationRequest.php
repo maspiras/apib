@@ -8,6 +8,10 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use App\Helpers\ApiResponse;
 use Illuminate\Validation\Rule;
 
+use App\Rules\MultipleDateFormat;
+use Carbon\Carbon;
+use Carbon\Exceptions\InvalidFormatException;
+
 class ReservationRequest extends FormRequest
 {
     /**
@@ -30,8 +34,12 @@ class ReservationRequest extends FormRequest
     public function rules(): array
     {
         return [            
-            'checkin' => 'required|date_format:m/d/Y',
-            'checkout' => 'required|date_format:m/d/Y',
+            /* 'checkin' => 'required|date_format:m/d/Y h:i A', 
+            'checkout' => 'required|date_format:m/d/Y h:i A', */
+            
+            'checkin' => ['required', new MultipleDateFormat],
+            'checkout' => ['required', new MultipleDateFormat],
+           
             'adults' => 'integer:strict|max:300',
             'childs' => 'nullable|integer:strict|max:100',
             'pets' => 'nullable|integer:strict|max:200',
@@ -95,4 +103,21 @@ class ReservationRequest extends FormRequest
 
         throw new HttpResponseException(ApiResponse::error(422, 'Validation failed!', $validator->errors()));
     }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            
+            $checkin = Carbon::parse($this->checkin);
+            $checkout = Carbon::parse($this->checkout);
+            
+            if ($checkout->lessThanOrEqualTo($checkin)) {
+                    $validator->errors()->add(
+                        'check_out',
+                        'The check-out date must be after the check-in date.'
+                    );
+                }
+        });
+    }
+    
 }

@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-//use Illuminate\Foundation\Http\FormRequest; Laravel 11
-use Illuminate\Http\Request\FormRequest;
+use Illuminate\Foundation\Http\FormRequest; //Laravel 11
+//use Illuminate\Http\Request\FormRequest; //Laravel 12
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use App\Helpers\ApiResponse;
@@ -35,15 +35,15 @@ class ReservationRequest extends FormRequest
     public function rules(): array
     {
         return [            
-            'checkin' => ['required', 'date_format:m/d/Y h:i A'],   //'required|date_format:m/d/Y h:i A', 
-            'checkout' => ['required', 'date_format:m/d/Y h:i A'],  //'required|date_format:m/d/Y h:i A',
+           /*  'checkin' => ['required', 'date_format:m/d/Y h:i A'],   //'required|date_format:m/d/Y h:i A', 
+            'checkout' => ['required', 'date_format:m/d/Y h:i A'],  //'required|date_format:m/d/Y h:i A', */
             
-            /* 'checkin' => ['required', new MultipleDateFormat],
-            'checkout' => ['required', new MultipleDateFormat], */
+            'checkin' => ['required', new MultipleDateFormat],
+            'checkout' => ['required', new MultipleDateFormat],
            
-            'adults' => ['required', 'integer:strict', 'max:300'], //]'integer:strict|max:300',
-            'childs' => ['nullable', 'integer:strict', 'max:100'], 
-            'pets' => ['nullable', 'integer:strict', 'max:200'],                        
+            'adults' => ['required', 'integer', 'max:300'], //]'integer:strict|max:300',
+            'childs' => ['nullable', 'integer', 'max:100'], 
+            'pets' => ['nullable', 'integer', 'max:200'],                        
             'fullname' => ['required','string','max:255','min:3'],            
             'phone' => ['nullable', 'string', 'max:20'],
             'email' => ['nullable','email','max:255'],
@@ -53,7 +53,7 @@ class ReservationRequest extends FormRequest
             // Advanced validation to ensure rooms belong to the user's host
             
             'rooms.*' => [
-                    'required','numeric:strict','distinct',// 'unique:rooms,id',
+                    'required','numeric','distinct',// 'unique:rooms,id',
                      Rule::exists('rooms', 'id')
                         ->where(function ($query) {
                             $query->where('host_id', auth()->user()->host->id);
@@ -61,13 +61,13 @@ class ReservationRequest extends FormRequest
                     
                 ],
             'bookingsource_id' => ['required', 'integer'],
-            'rateperstay' => ['required','numeric:strict','min:1','decimal:0,2'], 
+            //'rateperstay' => ['required','numeric','min:1','decimal:0,2'], 
             'rateperday' => ['required', 'regex:/^\d+(\.\d{1,2})?$/'], //'required|regex:/^\d+(\.\d{1,2})?$/',
             'typeofpayment' => ['required', 'integer'], 
-            'discount' => ['nullable','numeric:strict','min:0','decimal:0,2'],
-            'discountoption' => ['nullable','numeric:strict','min:0','decimal:0,2'],
-            'tax' => ['nullable','numeric:strict','min:0','decimal:0,2'],
-            'prepayment' => ['nullable','numeric:strict','min:0','decimal:0,2'],
+            'discount' => ['nullable','numeric','min:0','decimal:0,2'],
+            'discountoption' => ['nullable','numeric','min:0','decimal:0,2'],
+            'tax' => ['nullable','numeric','min:0','decimal:0,2'],
+            'prepayment' => ['nullable','numeric','min:0','decimal:0,2'],
         ];
     }
 

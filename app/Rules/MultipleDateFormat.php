@@ -6,8 +6,8 @@ use Closure;
 
 use Illuminate\Contracts\Validation\Rule;
 use Carbon\Carbon;
-/* use Carbon\Exceptions\InvalidFormatException;
-use InvalidArgumentException;
+use Carbon\Exceptions\InvalidFormatException;
+/*use InvalidArgumentException;
 use Illuminate\Contracts\Validation\ValidationRule; */
 
 class MultipleDateFormat implements Rule
@@ -35,7 +35,7 @@ class MultipleDateFormat implements Rule
 
         foreach ($formats as $format) {
             try {
-                $date = Carbon::createFromFormat($format, $value);
+                $date = Carbon::createFromFormat($format, $value, auth()->user()->host->host_settings->timezone);
 
                 $errors = Carbon::getLastErrors();
                 if ($date !== false && empty($errors['error']) && empty($errors['warning'])) {

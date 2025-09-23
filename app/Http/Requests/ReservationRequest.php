@@ -34,11 +34,11 @@ class ReservationRequest extends FormRequest
     public function rules(): array
     {
         return [            
-            /* 'checkin' => 'required|date_format:m/d/Y h:i A', 
-            'checkout' => 'required|date_format:m/d/Y h:i A', */
+            'checkin' => 'required|date_format:m/d/Y h:i A', 
+            'checkout' => 'required|date_format:m/d/Y h:i A',
             
-            'checkin' => ['required', new MultipleDateFormat],
-            'checkout' => ['required', new MultipleDateFormat],
+            /* 'checkin' => ['required', new MultipleDateFormat],
+            'checkout' => ['required', new MultipleDateFormat], */
            
             'adults' => 'integer:strict|max:300',
             'childs' => 'nullable|integer:strict|max:100',

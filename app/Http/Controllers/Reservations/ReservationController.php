@@ -40,9 +40,31 @@ class ReservationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(ReservationRequest $request)
+    //public function store(ReservationRequest $request)
+    public function store(Request $request)
     {
-        $datacleaned = $request->validated();  
+        //$checkin = Carbon::parse($request->checkin);
+        // Step 1: Accepted regex formats
+        /* $patterns = [
+            '/^\d{2}\/\d{2}\/\d{4}$/',                     // 12/25/2025
+            '/^\d{2}\/\d{2}\/\d{4}\s\d{2}:\d{2}\s?(AM|PM)$/i', // 12/25/2025 03:00 PM
+        ];
+
+        $matches = false;
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $request->checkin)) {
+                $matches = true;
+                break;
+            }
+        }
+
+        if (!$matches) {
+            //return null; // 🚫 immediately reject malformed input
+            return 'Invalid checkin date format';
+        } */
+
+        //return $request->checkin;
+        //$datacleaned = $request->validated();  
 
         /* $checkin = Carbon::parse($datacleaned['checkin']);
         $checkout = Carbon::parse($datacleaned['checkout']);
@@ -67,7 +89,8 @@ class ReservationController extends Controller
         DB::beginTransaction();
         try {  
             //$this->reservationRepository->create($request->validated());
-            $reservation = $this->reservationService->create($datacleaned) ;
+            //$reservation = $this->reservationService->create($request) ;
+            $reservation = $this->reservationService->create($request->all()) ;
             //$reservation_id = $this->reservationRepository->insertGetId($data_reservation);
             DB::commit(); 
             return ApiResponse::success([], ['message' => 'Reservation created successfully!']);

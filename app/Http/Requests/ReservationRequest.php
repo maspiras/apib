@@ -13,6 +13,7 @@ use App\Rules\MultipleDateFormat;
 use Carbon\Carbon;
 use Carbon\Exceptions\InvalidFormatException;
 
+
 class ReservationRequest extends FormRequest
 {
     /**
@@ -35,7 +36,7 @@ class ReservationRequest extends FormRequest
     public function rules(): array
     {
         return [            
-           /*  'checkin' => ['required', 'date_format:m/d/Y h:i A'],   //'required|date_format:m/d/Y h:i A', 
+            /* 'checkin' => ['required', 'date_format:m/d/Y h:i A'],   //'required|date_format:m/d/Y h:i A', 
             'checkout' => ['required', 'date_format:m/d/Y h:i A'],  //'required|date_format:m/d/Y h:i A', */
             
             'checkin' => ['required', new MultipleDateFormat],
@@ -110,17 +111,81 @@ class ReservationRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            
-            $checkin = Carbon::parse($this->checkin);
-            $checkout = Carbon::parse($this->checkout);
-            
-            if ($checkout->lessThanOrEqualTo($checkin)) {
+            if($this->normalizeDate($this->checkout)){
+                
+                $checkin = Carbon::parse($this->checkin);
+                $checkout = Carbon::parse($this->checkout);
+                
+                if ($checkout->lessThanOrEqualTo($checkin)) {
                     $validator->errors()->add(
-                        'check_out',
+                        'checkout',
                         'The check-out date must be after the check-in date.'
                     );
                 }
+            }
+            
         });
+    }
+
+    protected function prepareForValidation() // Will be called before the validation process starts
+    {
+        /* // Trim strings
+        $this->merge([
+            'fullname' => $this->fullname ? trim($this->fullname) : null,
+            'phone' => $this->phone ? trim($this->phone) : null,
+            'email' => $this->email ? trim($this->email) : null,
+            'additionalinformation' => $this->additionalinformation ? trim($this->additionalinformation) : null,
+        ]); */
+        if ($this->has('checkin')) {
+            $this->merge([
+                'checkin' => $this->normalizeDate($this->checkin),
+                //'checkin' => $this->checkin,
+            ]);            
+        }
+
+        if ($this->has('checkout')) {
+            $this->merge([
+                'checkout' => $this->normalizeDate($this->checkout),
+                //'checkout' => $this->checkout,
+            ]);            
+        }
+    }
+
+    private function normalizeDate($date)
+    {
+        //$formats = ['m/d/Y h:i A'];
+        /* foreach ($formats as $format) {
+            try {
+                return Carbon::createFromFormat($format, $date);
+            } catch (\Exception $e) {
+                continue;
+                //throw new Exception("Invalid Format");
+            }
+        } */
+       // Acceptable formats
+        $formats = [
+            //'m/d/Y h:i A', // 12/25/2025 03:00 PM
+            'm/d/Y',       // 12/25/2025
+        ];
+
+        // Strict regex whitelist
+        $patterns = [
+            '/^\d{2}\/\d{2}\/\d{4}$/',                     // date only
+            //'/^\d{2}\/\d{2}\/\d{4}\s\d{2}:\d{2}\s?(AM|PM)$/i', // date + time
+        ];
+
+        $validPattern = false;
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $date)) {
+                $validPattern = true;
+                break;
+            }
+        }
+
+        if (!$validPattern) {
+            return false; // 🚫 immediately reject junk like "add..add"
+        }
+        return $date; // keep as-is to let validation fail
     }
     
 }

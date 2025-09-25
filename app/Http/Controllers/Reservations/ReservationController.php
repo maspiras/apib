@@ -40,9 +40,10 @@ class ReservationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    //public function store(ReservationRequest $request)
-    public function store(Request $request)
+    public function store(ReservationRequest $request)
+    //public function store(Request $request)
     {
+        
         //$checkin = Carbon::parse($request->checkin);
         // Step 1: Accepted regex formats
         /* $patterns = [
@@ -85,12 +86,15 @@ class ReservationController extends Controller
         }
 
         throw new \InvalidArgumentException("Invalidat date format {$carbon}"); */
+
+        $datacleaned = $request->validated();
         
         DB::beginTransaction();
         try {  
             //$this->reservationRepository->create($request->validated());
+            $reservation = $this->reservationService->create($datacleaned) ;
             //$reservation = $this->reservationService->create($request) ;
-            $reservation = $this->reservationService->create($request->all()) ;
+            //$reservation = $this->reservationService->create($request->all()) ;
             //$reservation_id = $this->reservationRepository->insertGetId($data_reservation);
             DB::commit(); 
             return ApiResponse::success([], ['message' => 'Reservation created successfully!']);

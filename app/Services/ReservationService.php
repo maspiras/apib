@@ -48,40 +48,13 @@ class ReservationService implements ReservationServiceInterface
 
     public function create(array $data): Reservation
     {
+        $datacleaned = $data;
         
-
-        $this->isDateValid($data['checkin'], 'checkin');
-        $this->isDateValid($data['checkout'], 'checkout');
-
-       
+        $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);          
+        $user = auth()->user();            
         
-        
-        
-
-        //$datacleaned = $this->reservationRequest->validated();
-        //$datacleaned = ReservationRequest::capture()->validated();
-        
-        $request = new ReservationRequest($data);
-        //app(ReservationRequest::class);
-        
-        $validator = Validator::make($data, $request->rules());
-        if ($validator->fails()) {
-            // Handle validation failure
-            // You can throw an exception or return an error response
-            throw new ValidationException($validator);
-        }
-        $datacleaned = $validator->validated();
-        //$datacleaned = $data;
-
-        //return Reservation::create($data);
-        $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);  
-        //urrency_id = auth()->user()->host->host_settings->currency_id; 
-        $user = auth()->user();    
-        
-        /* $checkin = Carbon::parse($datacleaned['checkin'].' 2pm');
-        $checkout = Carbon::parse($datacleaned['checkout'].' 12pm'); */
-        $checkin = Carbon::parse($datacleaned['checkin']);
-        $checkout = Carbon::parse($datacleaned['checkout']);
+        $checkin = Carbon::parse($datacleaned['checkin']. '2pm');
+        $checkout = Carbon::parse($datacleaned['checkout']. '12pm');
 
         if ($checkout->lessThanOrEqualTo($checkin)) {                
                 throw new Exception("The check-out date must be after the check-in date.");
@@ -243,7 +216,7 @@ class ReservationService implements ReservationServiceInterface
         return $rate + $meals + $services;
     }
 
-    public function isDateValid($date, $type){
+    /* public function isDateValid($date, $type){
         $patterns = [
             '/^\d{2}\/\d{2}\/\d{4}$/',                     // 12/25/2025
             '/^\d{2}\/\d{2}\/\d{4}\s\d{2}:\d{2}\s?(AM|PM)$/i', // 12/25/2025 03:00 PM
@@ -262,7 +235,5 @@ class ReservationService implements ReservationServiceInterface
             //return 'Invalid checkin date format';
             throw new Exception("Invalid $type date format");
         }
-
-        
-    }
+    } */
 }

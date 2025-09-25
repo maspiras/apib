@@ -138,7 +138,8 @@ class ReservationController extends Controller
         } */
        $datacleaned = $request->validated();
        $reservation = $this->reservationService->update($id,$datacleaned) ;
-       return $reservation;
+       //return $reservation;
+       return ApiResponse::success($reservation, ['message' => 'Reservation updated successfully!']);
     }
 
     /**

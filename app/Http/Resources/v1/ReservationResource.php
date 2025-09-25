@@ -17,6 +17,7 @@ class ReservationResource extends JsonResource
         //return parent::toArray($request);
         return [
             'id' => $this->id,
+            'ref_number' => $this->ref_number,
             'checkin' => $this->checkin,
             'checkout' => $this->checkout,
             'adults' => $this->adults,

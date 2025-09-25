@@ -23,6 +23,13 @@ class ReservationRepository extends BaseRepository implements ReservationReposit
             ->orWhere('ref_number', $id)
             ->firstOrFail();
     }
+
+    public function update(int $id, array $data)
+    {
+        $reservation = $this->find($id);
+        $reservation->update($data);
+        return $reservation;
+    }
     /*
 
     public function all()

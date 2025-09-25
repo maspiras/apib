@@ -209,11 +209,66 @@ class ReservationService implements ReservationServiceInterface
        
     }
 
-    public function update(Reservation $model, array $data): Reservation
+    //public function update(Reservation $model, array $data): Reservation
+    //public function update(int $id, array $data): Reservation
+    public function update(int $id, array $data)
     {
-        $model->update($data);
-        return $model;
+        $reservation = $this->reservationRepository->find($id);
+        
+
+        if (!$reservation) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Reservation cannot found!');
+        }
+
+        //return $data->checkin;
+
+        $user = auth()->user();            
+        $datacleaned = $data;
+        
+        $checkin = Carbon::parse($datacleaned['checkin']. '2pm')->format('Y-m-d H:i');
+        $checkout = Carbon::parse($datacleaned['checkout']. '12pm')->format('Y-m-d H:i');
+        
+        
+        $data_reservation = array(
+                        'checkin' => $checkin, //$datacleaned['checkin'],
+                        'checkout' => $checkout, //$datacleaned['checkout'],
+                        /*'adults' => $datacleaned['adults'],
+                        'childs' => $datacleaned['childs'],
+                        'pets' => $datacleaned['pets'],
+                        'fullname' => $datacleaned['fullname'],
+                        'phone' => $datacleaned['phone'],
+                        'email' => $datacleaned['email'],
+                        'additional_info' => $datacleaned['additionalinformation'],
+                        //'rooms' => $datacleaned['rooms'],
+                         'booking_source_id' => $datacleaned['bookingsource_id'],
+                        'doorcode' => 0,
+                        'rateperday' => $datacleaned['rateperday'],
+                        'daystay' => $diff,
+                        'meals_total' => 0, //$datacleaned['mealsamount'],
+                        'additional_services_total' => 0, //$datacleaned['servicestotalamount'],
+                        'subtotal' => $rateperstay,
+                        'discount' => $discount,
+                        'tax' => $datacleaned['tax'],
+                        'grandtotal' => $grandtotal, 
+                        'currency_id' => $user->host->host_settings->currency_id,
+                        'payment_type_id' => $datacleaned['typeofpayment'],
+                        //'prepayment' => $datacleaned->prepayment,
+                        'prepayment' => $datacleaned['prepayment'],
+                        'payment_status_id' => $payment_status,
+                        'balancepayment' => $balance, 
+                        'user_id' => $user->id,
+                        'host_id' => $user->host->id,
+                        'booking_status_id' => empty($datacleaned['prepayment']) ? 0 : 1, */                            
+                    );
+
+        $this->reservationRepository->update($id, $data_reservation);
+
+        // Optionally reload the updated reservation
+        $updatedReservation = $this->reservationRepository->find($id);
+        return $updatedReservation;
+        //return $reservation;
     }
+    
 
     public function delete(Reservation $model): bool
     {

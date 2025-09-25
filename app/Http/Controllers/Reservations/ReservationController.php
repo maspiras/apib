@@ -124,16 +124,21 @@ class ReservationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(ReservationRequest $request, string $id)
     {
-        try {              
-            $reservation = $this->reservationService->getById($id) ;            
-            return ApiResponse::success($reservation, ['message' => 'Reservation Information']);
+        /* try {              
+            //$reservation = $this->reservationService->getById($id) ;            
+            $reservation = $this->reservationService->update($id, $request->all()) ;    
+            return ApiResponse::success($reservation, ['message' => 'Reservation Updated Successfully']);
         } catch(\Exception $e) {
         #} catch(\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             
-            return ApiResponse::error(500, 'No Reservation', ['error' => 'Reservation not found!']);
-        }
+            //return ApiResponse::error(500, 'No Reservation', ['error' => 'Reservation not found!']);
+            return ApiResponse::error(500, 'No Reservation', ['error' => $e->getMessage()]);
+        } */
+       $datacleaned = $request->validated();
+       $reservation = $this->reservationService->update($id,$datacleaned) ;
+       return $reservation;
     }
 
     /**

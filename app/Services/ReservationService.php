@@ -42,12 +42,18 @@ class ReservationService implements ReservationServiceInterface
     }
 
     //public function getById(int $id): ?Reservation
-    public function getById(int $id)
+    public function getById($id)
+    //public function getById(int $id): Reservation
     {
-        //return Reservation::find($id);
-        //return new ReservationResource($this->reservationRepository->find($id));
+        /* try {
+            $reservation = $this->reservationRepository->find($id);
+            return new ReservationResource($reservation);
+        } catch (ModelNotFoundException $e){
+            throw new Exception('Reservation not found!');
+        } */
         $reservation = $this->reservationRepository->find($id);
         return new ReservationResource($reservation);
+        
     }
 
     public function create(array $data): Reservation

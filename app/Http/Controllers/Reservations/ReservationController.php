@@ -113,8 +113,9 @@ class ReservationController extends Controller
             $reservation = $this->reservationService->getById($id) ;            
             return ApiResponse::success($reservation, ['message' => 'Reservation Information']);
         } catch(\Exception $e) {
-            DB::rollBack();
-            return ApiResponse::error(500, 'No Reservation', ['error' => $e->getMessage()]);
+        #} catch(\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            
+            return ApiResponse::error(500, 'No Reservation', ['error' => 'Reservation not found!']);
         }
     }
 

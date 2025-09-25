@@ -23,16 +23,20 @@ class ReservationResource extends JsonResource
             'childs' => $this->childs,
             'pets' => $this->pets,
             'fullname' => $this->fullname,            
-            /* 'email' => $this->email,
             'phone' => $this->phone,
-            'additionalinformation' => $this->additionalinformation,
-            'room' => $this->rooms, */
+            'email' => $this->email,            
+            'additionalinformation' => $this->additional_info,
+            'bookingsource_id' => $this->bookingsource_id,
+            'room' => $this->rooms,
             'ratesperday' => $this->rateperday,            
-            'payment_status_id' => $this->payment_status_id,
+            'daystay' => $this->daystay, 
+            'ratesperstay' => $this->subtotal,
+            'payment_type_id' => $this->payment_type_id,            
             'grandtotal' => $this->grandtotal,
-            'discount' => $this->discount, 
-            'prepayment' => $this->prepayment,
+            'discount' => $this->discount,            
+            'prepayment' => $this->prepayment,            
             'balance' => $this->balancepayment,
+            'payment_status_id' => $this->payment_status_id,
         ];
     }
 }

@@ -41,9 +41,13 @@ class ReservationService implements ReservationServiceInterface
         return ReservationResource::collection($this->reservationRepository->paginate(100));
     }
 
-    public function getById(int $id): ?Reservation
+    //public function getById(int $id): ?Reservation
+    public function getById(int $id)
     {
-        return Reservation::find($id);
+        //return Reservation::find($id);
+        //return new ReservationResource($this->reservationRepository->find($id));
+        $reservation = $this->reservationRepository->find($id);
+        return new ReservationResource($reservation);
     }
 
     public function create(array $data): Reservation

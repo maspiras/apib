@@ -108,8 +108,14 @@ class ReservationController extends Controller
      * Display the specified resource.
      */
     public function show(string $id)
-    {
-        //
+    {        
+        try {              
+            $reservation = $this->reservationService->getById($id) ;            
+            return ApiResponse::success($reservation, ['message' => 'Reservation Information']);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return ApiResponse::error(500, 'No Reservation', ['error' => $e->getMessage()]);
+        }
     }
 
     /**

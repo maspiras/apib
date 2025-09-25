@@ -109,6 +109,23 @@ class ReservationController extends Controller
      */
     public function show(string $id)
     {        
+        /* try {              
+            $reservation = $this->reservationService->getById($id) ;            
+            return ApiResponse::success($reservation, ['message' => 'Reservation Information']);
+        } catch(\Exception $e) {
+        #} catch(\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            
+            return ApiResponse::error(500, 'No Reservation', ['error' => 'Reservation not found!']);
+        } */
+        $reservation = $this->reservationService->getById($id) ;            
+        return ApiResponse::success($reservation, ['message' => 'Reservation Information']);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
         try {              
             $reservation = $this->reservationService->getById($id) ;            
             return ApiResponse::success($reservation, ['message' => 'Reservation Information']);
@@ -117,14 +134,6 @@ class ReservationController extends Controller
             
             return ApiResponse::error(500, 'No Reservation', ['error' => 'Reservation not found!']);
         }
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
     }
 
     /**

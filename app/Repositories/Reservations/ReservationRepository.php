@@ -14,10 +14,14 @@ class ReservationRepository extends BaseRepository implements ReservationReposit
         $this->model = $reservation;
     }
 
-    public function find(int $id)
+    public function find($id)
     {
         //return $this->model->find($id);
-        return $this->model->where('host_id', auth()->user()->host->id)->findOrFail($id);
+        //return $this->model->where('host_id', auth()->user()->host->id)->findOrFail($id);
+        return $this->model->where('host_id', auth()->user()->host->id)
+            ->where('id', $id)        
+            ->orWhere('ref_number', $id)
+            ->firstOrFail();
     }
     /*
 

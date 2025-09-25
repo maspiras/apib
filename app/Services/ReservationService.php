@@ -52,6 +52,11 @@ class ReservationService implements ReservationServiceInterface
             throw new Exception('Reservation not found!');
         } */
         $reservation = $this->reservationRepository->find($id);
+        
+        if(!$reservation){
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Reservation not found!');
+            //throw new Exception('Reservation not found!');
+        }
         return new ReservationResource($reservation);
         
     }

@@ -18,9 +18,11 @@ class ReservationRepository extends BaseRepository implements ReservationReposit
     {
         //return $this->model->find($id);
         //return $this->model->where('host_id', auth()->user()->host->id)->findOrFail($id);
-        return $this->model->where('host_id', auth()->user()->host->id)
-            ->where('id', $id)        
-            //->orWhere('ref_number', $id)
+        return $this->model->where('host_id', auth()->user()->host->id)            
+            ->where(function ($query) use ($id) {
+                  $query->orWhere('id', $id)
+                        ->orWhere('ref_number', $id);
+                })
             ->firstOrFail();
     }
 

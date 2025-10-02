@@ -2,7 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Foundation\Http\FormRequest; //Laravel 11
+//use Illuminate\Http\Request\FormRequest; //Laravel 12
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use App\Helpers\ApiResponse;
@@ -11,6 +12,7 @@ use Illuminate\Validation\Rule;
 use App\Rules\MultipleDateFormat;
 use Carbon\Carbon;
 use Carbon\Exceptions\InvalidFormatException;
+
 
 class ReservationRequest extends FormRequest
 {
@@ -34,37 +36,39 @@ class ReservationRequest extends FormRequest
     public function rules(): array
     {
         return [            
-            /* 'checkin' => 'required|date_format:m/d/Y h:i A', 
-            'checkout' => 'required|date_format:m/d/Y h:i A', */
+            /* 'checkin' => ['required', 'date_format:m/d/Y h:i A'],   //'required|date_format:m/d/Y h:i A', 
+            'checkout' => ['required', 'date_format:m/d/Y h:i A'],  //'required|date_format:m/d/Y h:i A', */
             
             'checkin' => ['required', new MultipleDateFormat],
             'checkout' => ['required', new MultipleDateFormat],
            
-            'adults' => 'integer:strict|max:300',
-            'childs' => 'nullable|integer:strict|max:100',
-            'pets' => 'nullable|integer:strict|max:200',
-            'fullname' => 'required|string|max:255|min:3',
-            'phone' => 'nullable|string|max:20',
-            'email' => 'email|max:255',
-            'additionalinformation' => 'nullable|string|max:1000',
-            'rooms' => 'required|array', // Ensure the input is an array
-            'rooms.*' => 'required|numeric:strict|distinct', // Each item must be a distinct existing room ID
+            'adults' => ['required', 'integer', 'max:300'], //]'integer:strict|max:300',
+            'childs' => ['nullable', 'integer', 'max:100'], 
+            'pets' => ['nullable', 'integer', 'max:200'],                        
+            'fullname' => ['required','string','max:255','min:3'],            
+            'phone' => ['nullable', 'string', 'max:20'],
+            'email' => ['nullable','email','max:255'],
+            'additionalinformation' => ['nullable','string','max:1000'],
+            'rooms' => ['required','array'], // Ensure the input is an array
+            
+            // Advanced validation to ensure rooms belong to the user's host
+            
             'rooms.*' => [
-                    'required','numeric:strict','distinct',// 'unique:rooms,id',
+                    'required','numeric','distinct',// 'unique:rooms,id',
                      Rule::exists('rooms', 'id')
                         ->where(function ($query) {
                             $query->where('host_id', auth()->user()->host->id);
                         }), 
                     
                 ],
-            'bookingsource_id' => 'required|integer',            
-            'rateperday' => 'required|numeric:strict|min:1|decimal:0,2',
-            //'rateperday' => 'required|regex:/^\d+(\.\d{1,2})?$/',
-            'typeofpayment' => 'required|integer',
-            'discount' => 'nullable|numeric:strict|min:0|decimal:0,2',
-            'discountoption' => 'nullable|numeric:strict|min:0|decimal:0,2',
-            'tax' => 'nullable|numeric:strict|min:0|decimal:0,2',
-            'prepayment' => 'nullable|numeric:strict|min:0|decimal:0,2',
+            'bookingsource_id' => ['required', 'integer'],
+            //'rateperstay' => ['required','numeric','min:1','decimal:0,2'], 
+            'rateperday' => ['required', 'regex:/^\d+(\.\d{1,2})?$/'], //'required|regex:/^\d+(\.\d{1,2})?$/',
+            'typeofpayment' => ['required', 'integer'], 
+            'discount' => ['nullable','numeric','min:0','decimal:0,2'],
+            'discountoption' => ['nullable','numeric','min:0','decimal:0,2'],
+            'tax' => ['nullable','numeric','min:0','decimal:0,2'],
+            'prepayment' => ['nullable','numeric','min:0','decimal:0,2'],
         ];
     }
 
@@ -107,17 +111,81 @@ class ReservationRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            
-            $checkin = Carbon::parse($this->checkin);
-            $checkout = Carbon::parse($this->checkout);
-            
-            if ($checkout->lessThanOrEqualTo($checkin)) {
+            if($this->normalizeDate($this->checkout)){
+                
+                $checkin = Carbon::parse($this->checkin);
+                $checkout = Carbon::parse($this->checkout);
+                
+                if ($checkout->lessThanOrEqualTo($checkin)) {
                     $validator->errors()->add(
-                        'check_out',
+                        'checkout',
                         'The check-out date must be after the check-in date.'
                     );
                 }
+            }
+            
         });
+    }
+
+    protected function prepareForValidation() // Will be called before the validation process starts
+    {
+        /* // Trim strings
+        $this->merge([
+            'fullname' => $this->fullname ? trim($this->fullname) : null,
+            'phone' => $this->phone ? trim($this->phone) : null,
+            'email' => $this->email ? trim($this->email) : null,
+            'additionalinformation' => $this->additionalinformation ? trim($this->additionalinformation) : null,
+        ]); */
+        if ($this->has('checkin')) {
+            $this->merge([
+                'checkin' => $this->normalizeDate($this->checkin),
+                //'checkin' => $this->checkin,
+            ]);            
+        }
+
+        if ($this->has('checkout')) {
+            $this->merge([
+                'checkout' => $this->normalizeDate($this->checkout),
+                //'checkout' => $this->checkout,
+            ]);            
+        }
+    }
+
+    private function normalizeDate($date)
+    {
+        //$formats = ['m/d/Y h:i A'];
+        /* foreach ($formats as $format) {
+            try {
+                return Carbon::createFromFormat($format, $date);
+            } catch (\Exception $e) {
+                continue;
+                //throw new Exception("Invalid Format");
+            }
+        } */
+       // Acceptable formats
+        $formats = [
+            //'m/d/Y h:i A', // 12/25/2025 03:00 PM
+            'm/d/Y',       // 12/25/2025
+        ];
+
+        // Strict regex whitelist
+        $patterns = [
+            '/^\d{2}\/\d{2}\/\d{4}$/',                     // date only
+            //'/^\d{2}\/\d{2}\/\d{4}\s\d{2}:\d{2}\s?(AM|PM)$/i', // date + time
+        ];
+
+        $validPattern = false;
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $date)) {
+                $validPattern = true;
+                break;
+            }
+        }
+
+        if (!$validPattern) {
+            return false; // 🚫 immediately reject junk like "add..add"
+        }
+        return $date; // keep as-is to let validation fail
     }
     
 }

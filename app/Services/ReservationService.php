@@ -17,7 +17,9 @@ use Exception;
 
 use App\Http\Resources\v1\ReservationResource;
 //use Illuminate\Database\Eloquent\Collection;
-
+use App\Http\Requests\ReservationRequest;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class ReservationService implements ReservationServiceInterface
 {
@@ -27,6 +29,7 @@ class ReservationService implements ReservationServiceInterface
         $this->reservationRepository = $reservationRepository;
         $this->reservedRoomRepository = $reservedRoomRepository;
         $this->paymentRepository = $paymentRepository;        
+    
     }
 
     public function getAll()
@@ -38,22 +41,39 @@ class ReservationService implements ReservationServiceInterface
         return ReservationResource::collection($this->reservationRepository->paginate(100));
     }
 
-    public function getById(int $id): ?Reservation
+    //public function getById(int $id): ?Reservation
+    public function getById($id)
+    //public function getById(int $id): Reservation
     {
-        return Reservation::find($id);
+        /* try {
+            $reservation = $this->reservationRepository->find($id);
+            return new ReservationResource($reservation);
+        } catch (ModelNotFoundException $e){
+            throw new Exception('Reservation not found!');
+        } */
+        $reservation = $this->reservationRepository->find($id);
+        
+        if(!$reservation){
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Reservation not found!');
+            //throw new Exception('Reservation not found!');
+        }
+        return new ReservationResource($reservation);
+        
     }
 
-    public function create(array $datacleaned): Reservation
+    public function create(array $data): Reservation
     {
-        //return Reservation::create($data);
-        $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);  
-        //urrency_id = auth()->user()->host->host_settings->currency_id; 
-        $user = auth()->user();    
+        $datacleaned = $data;
         
-        /* $checkin = Carbon::parse($datacleaned['checkin'].' 2pm');
-        $checkout = Carbon::parse($datacleaned['checkout'].' 12pm'); */
-        $checkin = Carbon::parse($datacleaned['checkin']);
-        $checkout = Carbon::parse($datacleaned['checkout']);
+        $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);          
+        $user = auth()->user();            
+        
+        $checkin = Carbon::parse($datacleaned['checkin']. '2pm');
+        $checkout = Carbon::parse($datacleaned['checkout']. '12pm');
+
+        if ($checkout->lessThanOrEqualTo($checkin)) {                
+                throw new Exception("The check-out date must be after the check-in date.");
+        }
 
         /* if($datacleaned['checkin'] == $datacleaned['checkout']){
           $checkout = $checkout->addDays(1);  
@@ -189,11 +209,143 @@ class ReservationService implements ReservationServiceInterface
        
     }
 
-    public function update(Reservation $model, array $data): Reservation
+    //public function update(Reservation $model, array $data): Reservation
+    //public function update(int $id, array $data): Reservation
+    public function update(int $id, array $data)
     {
-        $model->update($data);
-        return $model;
+        $reservation = $this->reservationRepository->find($id);
+        //return $reservation;
+        //return $data->id;
+        
+
+        if (!$reservation || $reservation->booking_status_id == 2) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Reservation cannot found!');
+        }
+
+        /* if($reservation->booking_status_id == 2){
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Reservation cannot found!');
+        } */
+
+        //return $data->checkin;
+
+        $user = auth()->user();            
+        $datacleaned = $data;
+        
+        $checkin = Carbon::parse($datacleaned['checkin']. '2pm'); //->format('Y-m-d H:i');
+        $checkout = Carbon::parse($datacleaned['checkout']. '12pm'); //->format('Y-m-d H:i');
+        
+        /* if ($checkout->lessThanOrEqualTo($checkin)) {                
+            throw new Exception("The check-out date must be after the check-in date.");
+        } */
+        $diff = round($checkin->diffInDays($checkout));
+        $rateperstay = $datacleaned['rateperday'] * $diff;        
+
+        $grandtotal = $this->getReservationGrandTotal($rateperstay, $meals=0, $services=0);
+        
+        $discount = null;
+        if($datacleaned['discountoption'] == 1){
+            $discount = $datacleaned['discount'];
+        }elseif($datacleaned['discountoption'] == 2){
+            $discount = ($grandtotal * $datacleaned['discount']) / 100;
+        }else{
+            $discount = 0;
+        }
+
+        $payment_status = $reservation->payment_status_id;
+
+        $net_total = $grandtotal - $discount;
+        $oldbalance = $net_total - $reservation->prepayment;
+        $balance = 0;
+        $amount = 0;
+
+        $prepayment = $reservation->prepayment;
+        if(!empty($datacleaned['prepayment'])){
+                
+            if($datacleaned['prepayment'] >= $net_total){
+                $payment_status = 3;
+                $balance = 0;
+                $amount = $net_total;
+                $prepayment = $reservation->prepayment + $oldbalance;
+           }else{
+
+                /* $balance = $grandtotal - ($reservation->prepayment + $request->prepayment);                
+                $amount = $request->prepayment; */
+                
+                $balance = $net_total - ($reservation->prepayment + $datacleaned['prepayment']);
+                $amount = $datacleaned['prepayment'];
+
+               // echo $request->prepayment. ' x '.$reservation->prepayment.' x ' .$oldbalance . ' x '.($reservation->prepayment + $request->prepayment).'<br>';
+               
+                if($datacleaned['prepayment'] >= $oldbalance){
+                    $payment_status = 3;
+                    $amount = $oldbalance;
+                    $prepayment = $reservation->prepayment + $oldbalance;
+                }else{
+                    $payment_status = 2;
+                    $prepayment = $reservation->prepayment + $datacleaned['prepayment'];
+                }
+                
+                if($balance < 0){
+                    $balance = 0;
+                }
+
+                
+           }
+           $booking_status_id =1;
+        }else{
+            $booking_status_id = $reservation->booking_status_id;
+           # $balance = $reservation->balancepayment;
+            $balance = $oldbalance;
+            
+        }
+
+        $data_reservation = array(
+                        'checkin' => $checkin->format('Y-m-d H:i'), //$datacleaned['checkin'],
+                        'checkout' => $checkout->format('Y-m-d H:i'), //$datacleaned['checkout'],
+                        'adults' => $datacleaned['adults'],
+                        'childs' => $datacleaned['childs'],
+                        'pets' => $datacleaned['pets'],
+                        'fullname' => $datacleaned['fullname'],
+                        'phone' => $datacleaned['phone'],
+                        'email' => $datacleaned['email'],
+                        'additional_info' => $datacleaned['additionalinformation'],
+                        //'rooms' => $datacleaned['rooms'],
+                        'booking_source_id' => $datacleaned['bookingsource_id'],
+                        'doorcode' => 0,
+                        'rateperday' => $datacleaned['rateperday'],
+                        'daystay' => $diff,
+                        'meals_total' => 0, //$datacleaned['mealsamount'],
+                        'additional_services_total' => 0, //$datacleaned['servicestotalamount'],
+                        'subtotal' => $rateperstay,
+                        'discount' => $discount,
+                        'tax' => $datacleaned['tax'],
+                        'grandtotal' => $grandtotal, 
+                        #'currency_id' => $user->host->host_settings->currency_id,
+                        'payment_type_id' => $datacleaned['typeofpayment'],
+                        //'prepayment' => $datacleaned->prepayment,
+                        'prepayment' => $prepayment,
+                        'payment_status_id' => $payment_status,
+                        'balancepayment' => $balance, 
+                        //'user_id' => $user->id,
+                        //'host_id' => $user->host->id,
+                        'booking_status_id' => $booking_status_id,
+                    );
+        DB::beginTransaction();
+        try {
+
+            $this->reservationRepository->update($id, $data_reservation);
+            DB::commit(); 
+            // Optionally reload the updated reservation
+            $updatedReservation = $this->reservationRepository->find($id);
+            return $updatedReservation;
+        
+         } catch(\Exception $e) {
+                DB::rollBack();
+
+        }
+        //return $reservation;
     }
+    
 
     public function delete(Reservation $model): bool
     {
@@ -210,4 +362,25 @@ class ReservationService implements ReservationServiceInterface
         
         return $rate + $meals + $services;
     }
+
+    /* public function isDateValid($date, $type){
+        $patterns = [
+            '/^\d{2}\/\d{2}\/\d{4}$/',                     // 12/25/2025
+            '/^\d{2}\/\d{2}\/\d{4}\s\d{2}:\d{2}\s?(AM|PM)$/i', // 12/25/2025 03:00 PM
+        ];
+
+        $matches = false;
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $date)) {
+                $matches = true;
+                break;
+            }
+        }
+
+        if (!$matches) {
+            //return null; // 🚫 immediately reject malformed input
+            //return 'Invalid checkin date format';
+            throw new Exception("Invalid $type date format");
+        }
+    } */
 }

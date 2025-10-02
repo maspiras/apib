@@ -2,55 +2,67 @@
 
 namespace App\Rules;
 
-use Closure;
-
 use Illuminate\Contracts\Validation\Rule;
 use Carbon\Carbon;
-/* use Carbon\Exceptions\InvalidFormatException;
-use InvalidArgumentException;
-use Illuminate\Contracts\Validation\ValidationRule; */
+use DateTime;
 
 class MultipleDateFormat implements Rule
 {
+    protected ?Carbon $parsedDate = null;
+
     public function passes($attribute, $value): bool
     {
-        /* // 1. Allow only digits, slash, colon, space, and AM/PM
-        if (!preg_match('/^[0-9\/:\sAPMapm]+$/', $value)) {
-            return false; // 🚫 contains invalid characters
-        } */
-
-        // ✅ 1. Hard regex whitelist
-        // Match either m/d/Y h:i AM|PM OR m/d/Y
-        $dateOnlyPattern   = '/^\d{2}\/\d{2}\/\d{4}$/';
-        $dateTimePattern   = '/^\d{2}\/\d{2}\/\d{4}\s\d{2}:\d{2}\s?(AM|PM)$/i';
-
-        if (!preg_match($dateOnlyPattern, $value) && !preg_match($dateTimePattern, $value)) {
-            return false; // 🚫 invalid structure, don't send to Carbon
-        }
-
+        // Acceptable formats
         $formats = [
-            'm/d/Y h:i A', // e.g. 12/25/2025 02:00 PM
-            'm/d/Y',       // e.g. 12/25/2025
+            //'m/d/Y h:i A', // 12/25/2025 03:00 PM
+            'm/d/Y',       // 12/25/2025
         ];
 
-        foreach ($formats as $format) {
-            try {
-                $date = Carbon::createFromFormat($format, $value);
+        // Strict regex whitelist
+        $patterns = [
+            '/^\d{2}\/\d{2}\/\d{4}$/',                     // date only
+           // '/^\d{2}\/\d{2}\/\d{4}\s\d{2}:\d{2}\s?(AM|PM)$/i', // date + time
+        ];
 
-                $errors = Carbon::getLastErrors();
-                if ($date !== false && empty($errors['error']) && empty($errors['warning'])) {
-                    return true; // ✅ valid date
-                }
-            } catch (\Exception $e) {
-                continue; // try next format
+        $validPattern = false;
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $value)) {
+                $validPattern = true;
+                break;
             }
         }
 
-        return false; // ❌ no format matched
+        if (!$validPattern) {
+            return false; // 🚫 immediately reject junk like "add..add"
+        }
+
+        // Try parsing with DateTime first
+        foreach ($formats as $format) {
+            try {
+                    $dt = DateTime::createFromFormat($format, $value);
+                $errors = DateTime::getLastErrors();
+
+                if ($dt && empty($errors['error']) && empty($errors['warning'])) {
+                    // Safe to re-parse with Carbon
+                    $this->parsedDate = Carbon::createFromFormat($format, $value);
+                    return true;
+                }
+            } catch (\Exception $e) {
+                // Continue to next format
+                continue;
+            }
+        }
+
+        return false; // 🚫 not a valid date
     }
 
     public function message(): string
     {
-        return 'The :attribute must be a valid date in format m/d/Y or m/d/Y h:i A.';
+        //return 'The :attribute must be a valid date in format m/d/Y or m/d/Y h:i A.';
+        return 'The :attribute must be a valid date in format m/d/Y';
     }
+
+    
+
+    
 }

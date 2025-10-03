@@ -118,7 +118,10 @@ class ReservationService implements ReservationServiceInterface
             }
          }
 
-         
+        $currency_id = $user->host->host_settings->currency_id;
+        if(empty($user->host->host_settings->currency_id)){
+        $currency_id = 251;
+        }
         
         //return $datacleaned;
         //return new ReservationResource($request);
@@ -147,7 +150,7 @@ class ReservationService implements ReservationServiceInterface
                         'discount' => $discount,
                         'tax' => $datacleaned['tax'],
                         'grandtotal' => $grandtotal, 
-                        'currency_id' => $user->host->host_settings->currency_id,
+                        'currency_id' => $currency_id,
                         'payment_type_id' => $datacleaned['typeofpayment'],
                         //'prepayment' => $datacleaned->prepayment,
                         'prepayment' => $datacleaned['prepayment'],

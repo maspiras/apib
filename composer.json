@@ -1,7 +1,8 @@
 {
-    "name": "laravel/laravel",
+    "name": "maspiras/apib",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Initial API",
+    "version": "1.1.0",
     "keywords": [
         "laravel",
         "framework"

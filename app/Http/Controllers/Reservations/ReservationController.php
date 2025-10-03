@@ -37,123 +37,13 @@ class ReservationController extends Controller
         return ApiResponse::paginated($this->reservationService->getAll());
     }
 
-    public function getReservationGrandTotal($rate, $meals=0, $services=0){
-        if(!empty($services)){            
-            $services = str_replace(',','', $services);
-        }
-        if(!empty($meals)){
-            $meals = str_replace(',','', $meals);
-        } 
-        
-        return $rate + $meals + $services;
-    }
-
     /**
      * Store a newly created resource in storage.
      */
-    //public function store(ReservationRequest $request)
-    public function store(Request $request)
+    public function store(ReservationRequest $request)
+    //public function store(Request $request)
     {
-        $datacleaned = $request->all();
-        
-        $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);          
-        $user = auth()->user();            
-        
-        $checkin = Carbon::parse($datacleaned['check_in']. '2pm');
-        $checkout = Carbon::parse($datacleaned['check_out']. '12pm');
-
-        if ($checkout->lessThanOrEqualTo($checkin)) {                
-                throw new Exception("The check-out date must be after the check-in date.");
-        }
-
-        /* if($datacleaned['checkin'] == $datacleaned['checkout']){
-          $checkout = $checkout->addDays(1);  
-        } */        
-        $diff = round($checkin->diffInDays($checkout));
-        /* if($diff <= 1){
-            $checkout = $checkout->addDays(1);  
-        } */
-        $rateperstay = $datacleaned['rateperday'] * $diff;        
-
-        $grandtotal = $this->getReservationGrandTotal($rateperstay, $meals=0, $services=0);
-        
-
-        $payment_status = 1;
-        
-        $amount = 0;
-
-        $discount = null;
-        if($datacleaned['discountoption'] == 1){
-            $discount = $datacleaned['discount'];
-        }elseif($datacleaned['discountoption'] == 2){
-            $discount = ($grandtotal * $datacleaned['discount']) / 100;
-        }else{
-            $discount = 0;
-        }
-
-        $net_total = $grandtotal - $discount;
-        $balance = $net_total;
-
-        if(!empty($datacleaned['prepayment'])){
-            
-            if($datacleaned['prepayment'] >= $net_total){
-                 $payment_status = 3;
-                 $balance = 0;
-                 $amount = $net_total;
-                 
-            }else{
-                 
-                 $balance = ($net_total - $datacleaned['prepayment']);
-                 $payment_status = 2;
-                 $amount = $datacleaned['prepayment'];
-            }
-         }
-
-        $currency_id = $user->host->host_settings->currency_id;
-        if(empty($user->host->host_settings->currency_id)){
-        $currency_id = 251;
-        }
-        
-        //return $datacleaned;
-        //return new ReservationResource($request);
-        //return ReservationResource::collection(($datacleaned));
-        
-       //return $datacleaned->additionalinformation;
-
-        $data_reservation = array('ref_number' => $ref_number,
-                        'check_in' => $checkin, //$datacleaned['checkin'],
-                        'check_out' => $checkout, //$datacleaned['checkout'],
-                        'adults' => $datacleaned['adults'],
-                        'childs' => $datacleaned['childs'],
-                        'pets' => $datacleaned['pets'],
-                        'fullname' => $datacleaned['fullname'],
-                        'phone' => $datacleaned['phone'],
-                        'email' => $datacleaned['email'],
-                        'additional_info' => $datacleaned['additionalinformation'],
-                        //'rooms' => $datacleaned['rooms'],
-                        'booking_source_id' => $datacleaned['bookingsource_id'],
-                        'doorcode' => 0,
-                        'rateperday' => $datacleaned['rateperday'],
-                        'daystay' => $diff,
-                        'meals_total' => 0, //$datacleaned['mealsamount'],
-                        'additional_services_total' => 0, //$datacleaned['servicestotalamount'],
-                        'subtotal' => $rateperstay,
-                        'discount' => $discount,
-                        'tax' => $datacleaned['tax'],
-                        'grandtotal' => $grandtotal, 
-                        'currency_id' => $currency_id,
-                        'payment_type_id' => $datacleaned['typeofpayment'],
-                        //'prepayment' => $datacleaned->prepayment,
-                        'prepayment' => $datacleaned['prepayment'],
-                        'payment_status_id' => $payment_status,
-                        'balancepayment' => $balance, 
-                        'user_id' => $user->id,
-                        'host_id' => $user->host->id,
-                        'booking_status_id' => empty($datacleaned['prepayment']) ? 0 : 1,     
-                        /* 'created_at' => now(),
-                        'updated_at' => now() */
-                    );
-        return $data_reservation;
+        return 'naks';
         //$checkin = Carbon::parse($request->checkin);
         // Step 1: Accepted regex formats
         /* $patterns = [

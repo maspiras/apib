@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 #use Illuminate\Database\Eloquent\Collection;
-use App\Models\ReservedRoom;
+use App\Models\ReservedRoomv2;
+
 
 class Reservation extends Model
 {
@@ -16,7 +17,7 @@ class Reservation extends Model
     //use SoftDeletes;
     public $timestamps = true;
     protected $fillable = [
-        'ref_number','checkin', 'checkout', 'adults', 'childs', 'pets', 'fullname',
+        'ref_number','check_in', 'check_out', 'adults', 'childs', 'pets', 'fullname',
         'phone', 'email', 'additional_info', 'booking_source_id', 'doorcode',
         'rateperday', 'daystay', 'subtotal', 'grandtotal','discount','tax', 'currency_id',
         'payment_type_id', 'prepayment', 'payment_status_id', 'balancepayment',
@@ -31,6 +32,6 @@ class Reservation extends Model
 
     public function reservedRooms(): HasMany
     {
-        return $this->hasMany(ReservedRoom::class, 'reservation_id');
+        return $this->hasMany(ReservedRoomv2::class, 'reservation_id');
     }
 }

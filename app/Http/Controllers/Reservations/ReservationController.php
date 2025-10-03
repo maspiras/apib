@@ -51,10 +51,10 @@ class ReservationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(ReservationRequest $request)
-    //public function store(Request $request)
+    //public function store(ReservationRequest $request)
+    public function store(Request $request)
     {
-        $datacleaned = $request->validated();
+        $datacleaned = $request->all();
         
         $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);          
         $user = auth()->user();            

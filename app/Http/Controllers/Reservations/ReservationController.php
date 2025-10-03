@@ -37,6 +37,17 @@ class ReservationController extends Controller
         return ApiResponse::paginated($this->reservationService->getAll());
     }
 
+    public function getReservationGrandTotal($rate, $meals=0, $services=0){
+        if(!empty($services)){            
+            $services = str_replace(',','', $services);
+        }
+        if(!empty($meals)){
+            $meals = str_replace(',','', $meals);
+        } 
+        
+        return $rate + $meals + $services;
+    }
+
     /**
      * Store a newly created resource in storage.
      */

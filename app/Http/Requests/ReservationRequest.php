@@ -39,8 +39,8 @@ class ReservationRequest extends FormRequest
             /* 'checkin' => ['required', 'date_format:m/d/Y h:i A'],   //'required|date_format:m/d/Y h:i A', 
             'checkout' => ['required', 'date_format:m/d/Y h:i A'],  //'required|date_format:m/d/Y h:i A', */
             
-            'checkin' => ['required', new MultipleDateFormat],
-            'checkout' => ['required', new MultipleDateFormat],
+            'check_in' => ['required', new MultipleDateFormat],
+            'check_out' => ['required', new MultipleDateFormat],
            
             'adults' => ['required', 'integer', 'max:300'], //]'integer:strict|max:300',
             'childs' => ['nullable', 'integer', 'max:100'], 
@@ -113,8 +113,8 @@ class ReservationRequest extends FormRequest
         $validator->after(function ($validator) {
             if($this->normalizeDate($this->checkout)){
                 
-                $checkin = Carbon::parse($this->checkin);
-                $checkout = Carbon::parse($this->checkout);
+                $checkin = Carbon::parse($this->check_in);
+                $checkout = Carbon::parse($this->check_out);
                 
                 if ($checkout->lessThanOrEqualTo($checkin)) {
                     $validator->errors()->add(
@@ -136,16 +136,16 @@ class ReservationRequest extends FormRequest
             'email' => $this->email ? trim($this->email) : null,
             'additionalinformation' => $this->additionalinformation ? trim($this->additionalinformation) : null,
         ]); */
-        if ($this->has('checkin')) {
+        if ($this->has('check_in')) {
             $this->merge([
-                'checkin' => $this->normalizeDate($this->checkin),
+                'check_in' => $this->normalizeDate($this->check_in),
                 //'checkin' => $this->checkin,
             ]);            
         }
 
-        if ($this->has('checkout')) {
+        if ($this->has('check_out')) {
             $this->merge([
-                'checkout' => $this->normalizeDate($this->checkout),
+                'check_out' => $this->normalizeDate($this->check_out),
                 //'checkout' => $this->checkout,
             ]);            
         }

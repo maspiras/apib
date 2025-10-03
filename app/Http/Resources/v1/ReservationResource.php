@@ -18,8 +18,8 @@ class ReservationResource extends JsonResource
         return [
             'id' => $this->id,
             'ref_number' => $this->ref_number,
-            'checkin' => $this->checkin,
-            'checkout' => $this->checkout,
+            'check_in' => $this->check_in,
+            'check_out' => $this->check_out,
             'adults' => $this->adults,
             'childs' => $this->childs,
             'pets' => $this->pets,

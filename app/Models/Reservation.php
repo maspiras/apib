@@ -17,7 +17,7 @@ class Reservation extends Model
     //use SoftDeletes;
     public $timestamps = true;
     protected $fillable = [
-        'ref_number','check_in', 'check_out', 'adults', 'childs', 'pets', 'fullname',
+        'ref_number','checkin', 'checkout', 'adults', 'childs', 'pets', 'fullname',
         'phone', 'email', 'additional_info', 'booking_source_id', 'doorcode',
         'rateperday', 'daystay', 'subtotal', 'grandtotal','discount','tax', 'currency_id',
         'payment_type_id', 'prepayment', 'payment_status_id', 'balancepayment',

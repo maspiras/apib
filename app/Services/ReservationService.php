@@ -68,8 +68,8 @@ class ReservationService implements ReservationServiceInterface
         $ref_number = substr(md5(time().'-'.auth()->user()->id), 0, 10);          
         $user = auth()->user();            
         
-        $checkin = Carbon::parse($datacleaned['check_in']. '2pm');
-        $checkout = Carbon::parse($datacleaned['check_out']. '12pm');
+        $checkin = Carbon::parse($datacleaned['checkin']. '2pm');
+        $checkout = Carbon::parse($datacleaned['checkout']. '12pm');
 
         if ($checkout->lessThanOrEqualTo($checkin)) {                
                 throw new Exception("The check-out date must be after the check-in date.");
@@ -130,8 +130,8 @@ class ReservationService implements ReservationServiceInterface
        //return $datacleaned->additionalinformation;
 
         $data_reservation = array('ref_number' => $ref_number,
-                        'check_in' => $checkin, //$datacleaned['checkin'],
-                        'check_out' => $checkout, //$datacleaned['checkout'],
+                        'checkin' => $checkin, //$datacleaned['checkin'],
+                        'checkout' => $checkout, //$datacleaned['checkout'],
                         'adults' => $datacleaned['adults'],
                         'childs' => $datacleaned['childs'],
                         'pets' => $datacleaned['pets'],

@@ -342,8 +342,44 @@ class ReservationService implements ReservationServiceInterface
                         //'host_id' => $user->host->id,
                         'booking_status_id' => $booking_status_id,
                     );
+            
+        //return $reservation->reservedRooms;    
+
         DB::beginTransaction();
         try {
+
+            $changed = 0;
+
+            $old_checkin = date('m/d/Y', strtotime($reservation->checkin));
+            $new_checkin = $datacleaned['checkin'];
+            $old_checkout = date('m/d/Y', strtotime($reservation->checkout));
+            $new_checkout = $datacleaned['checkout'];
+            if($new_checkin != $old_checkin){
+                $changed = 1;
+            }
+
+            if($new_checkout != $old_checkout){
+                $changed = 1;
+            }
+
+            $reservedRooms = $reservation->reservedRooms;
+
+            $myOldReservedRooms = [];
+            foreach($reservedRooms as $v){
+                $myOldReservedRooms[] = $v->room_id;
+            }
+            $myOldReservedRooms = array_unique($myOldReservedRooms);
+
+            $diff = array_diff_assoc($myOldReservedRooms, $datacleaned['rooms']);
+
+            if ($diff) {
+                $changed = 1;
+            }
+
+            if($changed == 1){
+                //$this->reservedRoomRepository->updateMyReservedRoom($reservation_id, $reservedroomsdata);                                 
+            }
+
 
             $this->reservationRepository->update($id, $data_reservation);
             DB::commit(); 

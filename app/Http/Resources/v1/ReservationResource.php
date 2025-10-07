@@ -27,8 +27,7 @@ class ReservationResource extends JsonResource
             'phone' => $this->phone,
             'email' => $this->email,            
             'additionalinformation' => $this->additional_info,
-            'bookingsource_id' => $this->bookingsource_id,
-            'rooms' => $this->rooms,
+            'bookingsource_id' => $this->bookingsource_id,            
             'ratesperday' => $this->rateperday,            
             'daystay' => $this->daystay, 
             'ratesperstay' => $this->subtotal,
@@ -38,6 +37,7 @@ class ReservationResource extends JsonResource
             'prepayment' => $this->prepayment,            
             'balance' => $this->balancepayment,
             'payment_status_id' => $this->payment_status_id,
+            'rooms' => $this->rooms,
         ];
     }
 }

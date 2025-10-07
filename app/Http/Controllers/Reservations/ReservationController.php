@@ -43,7 +43,7 @@ class ReservationController extends Controller
     public function store(ReservationRequest $request)
     //public function store(Request $request)
     {
-        return 'naks';
+        
         //$checkin = Carbon::parse($request->checkin);
         // Step 1: Accepted regex formats
         /* $patterns = [
@@ -97,7 +97,7 @@ class ReservationController extends Controller
             //$reservation = $this->reservationService->create($request->all()) ;
             //$reservation_id = $this->reservationRepository->insertGetId($data_reservation);
             DB::commit(); 
-            return ApiResponse::success([], ['message' => 'Reservation created successfully!']);
+            return ApiResponse::success($reservation, ['message' => 'Reservation created successfully!']);
         } catch(\Exception $e) {
             DB::rollBack();
             return ApiResponse::error(500, 'Reservation creation failed!', ['error' => $e->getMessage()]);

@@ -343,41 +343,73 @@ class ReservationService implements ReservationServiceInterface
                         'booking_status_id' => $booking_status_id,
                     );
             
-        //return $reservation->reservedRooms;    
+        //return $reservation->reservedRooms;  
+        
+        $changed = 0;
+
+        $old_checkin = date('m/d/Y', strtotime($reservation->checkin));
+        $new_checkin = $datacleaned['checkin'];
+        $old_checkout = date('m/d/Y', strtotime($reservation->checkout));
+        $new_checkout = $datacleaned['checkout'];
+        if($new_checkin != $old_checkin){
+            $changed = 1;
+        }
+
+        if($new_checkout != $old_checkout){
+            $changed = 1;
+        }
+
+        $reservedRooms = $reservation->reservedRooms;
+
+        $myOldReservedRooms = [];
+        foreach($reservedRooms as $v){
+            $myOldReservedRooms[] = $v->room_id;
+        }
+        $myOldReservedRooms = array_unique($myOldReservedRooms);
+        
+        if(empty($myOldReservedRooms)){
+            $changed = 1;
+        }else{
+                //$diff = array_diff_assoc($myOldReservedRooms, $datacleaned['rooms']);
+            $diff_rooms = array_diff($myOldReservedRooms, $datacleaned['rooms']);
+            
+            if ($diff_rooms) {                
+                $changed = 1;                
+            }
+        }
+
+        
+        $roomsBook = $this->reservedRoomRepository->roomIsBooked($datacleaned['rooms'], $checkin, $checkout, $reservation->id);                                
+            
+        if(count($roomsBook) == 1){            
+            throw new \Exception("This ".$roomsBook[0]->room_name." is not available for the selected dates.");
+        }elseif(count($roomsBook) > 1){
+            $rooms= [];
+            foreach($roomsBook as $room){
+                $rooms[] = $room->room_name;
+            }
+            $roomlist = implode(", ", $rooms);
+            throw new Exception("These rooms ($roomlist) are not available for the selected dates.");
+        }
 
         DB::beginTransaction();
         try {
-
-            $changed = 0;
-
-            $old_checkin = date('m/d/Y', strtotime($reservation->checkin));
-            $new_checkin = $datacleaned['checkin'];
-            $old_checkout = date('m/d/Y', strtotime($reservation->checkout));
-            $new_checkout = $datacleaned['checkout'];
-            if($new_checkin != $old_checkin){
-                $changed = 1;
-            }
-
-            if($new_checkout != $old_checkout){
-                $changed = 1;
-            }
-
-            $reservedRooms = $reservation->reservedRooms;
-
-            $myOldReservedRooms = [];
-            foreach($reservedRooms as $v){
-                $myOldReservedRooms[] = $v->room_id;
-            }
-            $myOldReservedRooms = array_unique($myOldReservedRooms);
-
-            $diff = array_diff_assoc($myOldReservedRooms, $datacleaned['rooms']);
-
-            if ($diff) {
-                $changed = 1;
-            }
-
+            
             if($changed == 1){
-                //$this->reservedRoomRepository->updateMyReservedRoom($reservation_id, $reservedroomsdata);                                 
+                
+                $this->reservedRoomRepository->massiveDelete($reservation->id); 
+                $datareservedroom = [];
+                foreach( $datacleaned['rooms'] as $bookedrooms){                    
+                    $datareservedroom[] = [
+                                            'reservation_id' => $reservation->id, 
+                                            'room_id' => $bookedrooms, 
+                                            'checkin' => $checkin, 
+                                            'checkout' => $checkout,
+                                            'status_id' => 1, // reserved
+                                        ];
+                }
+                $this->reservedRoomRepository->massiveInsert($datareservedroom);
+                //return $datareservedroom;
             }
 
 

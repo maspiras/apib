@@ -20,7 +20,7 @@ use App\Http\Resources\v1\ReservationResource;
 use App\Http\Requests\ReservationRequest;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
-
+use Illuminate\Support\Facades\Cache;
 
 class ReservationService implements ReservationServiceInterface
 {
@@ -46,19 +46,28 @@ class ReservationService implements ReservationServiceInterface
     public function getById($id)
     //public function getById(int $id): Reservation
     {
-        /* try {
-            $reservation = $this->reservationRepository->find($id);
-            return new ReservationResource($reservation);
-        } catch (ModelNotFoundException $e){
-            throw new Exception('Reservation not found!');
-        } */
-        $reservation = $this->reservationRepository->find($id);
+        $cache_keyword = 'reservation_id_'.$id;	
+		$data = cache($cache_keyword);        
+		if(is_null($data)){	
+            $data = $this->reservationRepository->find($id);
+            $data['rooms'] = $data->reservedRooms()->pluck('room_id');
+		    cache([$cache_keyword => $data], 864000); //10 days cache
+		}
+		
+        if(!$data){
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Reservation not found!');
+            //throw new Exception('Reservation not found!');
+        }
+
+        return new ReservationResource($data);
+        
+        /* $reservation = $this->reservationRepository->find($id);
         
         if(!$reservation){
             throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Reservation not found!');
             //throw new Exception('Reservation not found!');
         }
-        return new ReservationResource($reservation);
+        return new ReservationResource($reservation); */
         
     }
 
@@ -445,6 +454,8 @@ class ReservationService implements ReservationServiceInterface
                 }
                 
             }
+
+            Cache::forget('reservation_id_'.$id);
 
 
             $this->reservationRepository->update($id, $data_reservation);

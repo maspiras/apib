@@ -28,7 +28,7 @@ class ReservationResource extends JsonResource
             'email' => $this->email,            
             'additionalinformation' => $this->additional_info,
             'bookingsource_id' => $this->bookingsource_id,
-            'room' => $this->rooms,
+            'rooms' => $this->rooms,
             'ratesperday' => $this->rateperday,            
             'daystay' => $this->daystay, 
             'ratesperstay' => $this->subtotal,

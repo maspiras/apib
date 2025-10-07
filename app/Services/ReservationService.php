@@ -21,6 +21,7 @@ use App\Http\Requests\ReservationRequest;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
+
 class ReservationService implements ReservationServiceInterface
 {
     protected $reservationRepository, $reservedRoomRepository, $paymentRepository;
@@ -410,6 +411,39 @@ class ReservationService implements ReservationServiceInterface
                 }
                 $this->reservedRoomRepository->massiveInsert($datareservedroom);
                 //return $datareservedroom;
+            }
+
+            if(!empty($datacleaned['prepayment'])){
+                if($reservation->prepayment > 0){             
+                    if($prepayment >= $net_total){                    
+                        $action_type = 3;
+                    }else{
+                        $action_type = 2;
+                    }
+                }else{
+                    if($prepayment >= $net_total){                    
+                        $action_type = 3;
+                    }else{
+                        $action_type = 1;
+                    }
+                }
+                
+                $paymentData = array(
+                    'ref_number' => $reservation->ref_number,
+                    'host_id' => auth()->user()->host->id,
+                    'user_id' => auth()->user()->id,
+                    'reservation_id' => $reservation->id,
+                    'amount' => $amount,
+                    'balance' => $balance,
+                    'currency_id' => $user->host->host_settings->currency_id,
+                    'payment_type_id' => $datacleaned['typeofpayment'], 
+                    'action_type_id' => $action_type,
+                    'added_on' => now(),          
+                );
+                if($reservation->balancepayment != 0){
+                    $this->paymentRepository->insert($paymentData);
+                }
+                
             }
 
 

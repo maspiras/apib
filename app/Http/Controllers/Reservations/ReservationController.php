@@ -44,48 +44,7 @@ class ReservationController extends Controller
     //public function store(Request $request)
     {
         
-        //$checkin = Carbon::parse($request->checkin);
-        // Step 1: Accepted regex formats
-        /* $patterns = [
-            '/^\d{2}\/\d{2}\/\d{4}$/',                     // 12/25/2025
-            '/^\d{2}\/\d{2}\/\d{4}\s\d{2}:\d{2}\s?(AM|PM)$/i', // 12/25/2025 03:00 PM
-        ];
-
-        $matches = false;
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $request->checkin)) {
-                $matches = true;
-                break;
-            }
-        }
-
-        if (!$matches) {
-            //return null; // 🚫 immediately reject malformed input
-            return 'Invalid checkin date format';
-        } */
-
-        //return $request->checkin;
-        //$datacleaned = $request->validated();  
-
-        /* $checkin = Carbon::parse($datacleaned['checkin']);
-        $checkout = Carbon::parse($datacleaned['checkout']);
-        return array('result' => $checkout->lessThanOrEqualTo($checkin)); */
-        
-        //$format = 'm/d/Y h:i A';
-        /* $date = Carbon::createFromFormat($format, $datacleaned['checkout']);
-        return $date['date'];//->format($format); */
-        //return Carbon::parse('10/09/2025 asd...');
-        /* carbon = Carbon::parse('10/09/2025 aaa.sd..');
-        try{
-            return $carbon;
-        } catch (\Exception $e) {
-            return 'Error: ' . $e->getMessage();
-        } */
-        /* if($carbon !== false && empty(Carbon::getLastErrors()['errors'])){
-            return $carbon;
-        }
-
-        throw new \InvalidArgumentException("Invalidat date format {$carbon}"); */
+        //return $request->all();
 
         $datacleaned = $request->validated();
         

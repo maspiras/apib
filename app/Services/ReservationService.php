@@ -89,6 +89,7 @@ class ReservationService implements ReservationServiceInterface
 
         $payment_status = 1;
         
+        
         $amount = 0;
 
         $discount = null;
@@ -109,6 +110,7 @@ class ReservationService implements ReservationServiceInterface
                  $payment_status = 3;
                  $balance = 0;
                  $amount = $net_total;
+                 
                  
             }else{
                  
@@ -185,9 +187,16 @@ class ReservationService implements ReservationServiceInterface
         
         $datareservedroom = [];
         foreach( $datacleaned['rooms'] as $bookedrooms){                    
-            $datareservedroom[] = ['reservation_id' => $reservation->id, 'room_id' => $bookedrooms, 'checkin' => $checkin, 'checkout' => $checkout];
+            $datareservedroom[] = [
+                                    'reservation_id' => $reservation->id, 
+                                    'room_id' => $bookedrooms, 
+                                    'checkin' => $checkin, 
+                                    'checkout' => $checkout,
+                                    'status_id' => 1, // reserved
+                                ];
         }
         
+        $reservation['rooms'] = $datacleaned['rooms']['room_id'] ?? $datacleaned['rooms'];
         $this->reservedRoomRepository->massiveInsert($datareservedroom); // assign rooms to reserved_rooms table
 
         $dataPayment = array(

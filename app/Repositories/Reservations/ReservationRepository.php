@@ -26,6 +26,11 @@ class ReservationRepository extends BaseRepository implements ReservationReposit
             ->firstOrFail();
     }
 
+    public function paginate($perPage = 15) {
+        //return $this->model->paginate($perPage);
+        return $this->model->where('host_id', auth()->user()->host->id)->latest()->paginate($perPage);
+    }
+
     public function update(int $id, array $data)
     {
         $reservation = $this->find($id);

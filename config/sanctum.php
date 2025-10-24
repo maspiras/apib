@@ -19,7 +19,7 @@ return [
         '%s%s%s',
         'localhost,localhost:3000,127.0.0.1,127.0.0.1:3000,127.0.0.1:8000,::1',
         Sanctum::currentApplicationUrlWithPort(),
-        env('FRONTEND_URL') ? ','.parse_url(env('FRONTEND_URL'), PHP_URL_HOST) : ''
+        env('FRONTEND_URL') ? ',' . parse_url(env('FRONTEND_URL'), PHP_URL_HOST) : ''
     ))),
 
     /*
@@ -48,6 +48,8 @@ return [
     */
 
     'expiration' => null,
+    //'expiration' => env('ACCESS_TOKEN_EXPIRATION_TIME', 15),
+    //'rt_expiration' => env('REFRESH_TOKEN_EXPIRATION_TIME', 24 * 60),
 
     /*
     |--------------------------------------------------------------------------

@@ -14,6 +14,7 @@ use App\Http\Controllers\AuthController;
 use Laravel\Sanctum\Sanctum;
 
 use App\Http\Controllers\Rooms\RoomController;
+use App\Http\Controllers\Users\UserController;
 use App\Http\Controllers\Reservations\ReservationController;
 /* Route::get('/user', function (Request $request) {
     return $request->user();
@@ -30,16 +31,17 @@ Route::get('/login', [AuthController::class, 'login']);
 // Protected routes
 Route::middleware(['auth:sanctum', 'throttle:60,1', 'usertimezone'])->group(function () {
     //Route::middleware('usertimezone')->group(function () {
-        Route::post('/logout', [AuthController::class, 'logout']);
-        Route::get('/profile', [AuthController::class, 'profile']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/profile', [AuthController::class, 'profile']);
 
-        ######### Rooms ########
-        /* Route::group(['prefix' => 'rooms'], function () {
+    ######### Rooms ########
+    /* Route::group(['prefix' => 'rooms'], function () {
             Route::post('/store', [RoomController::class, 'store']);
         }); */
 
-        Route::apiResource('rooms', RoomController::class);
-        Route::apiResource('reservations', ReservationController::class);
+    Route::apiResource('rooms', RoomController::class);
+    Route::apiResource('user', UserController::class);
+    Route::apiResource('reservations', ReservationController::class);
     //});
 });
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

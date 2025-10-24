@@ -15,7 +15,7 @@ class VerifyMobileApp
        */
       public function handle(Request $request, Closure $next): Response
       {
-            iif ($request->header('X-API-KEY') !== config('app.app_key_mobile')) {
+            if ($request->header('X-API-KEY') !== config('app.app_key_mobile')) {
                   return response()->json(['message' => 'Invalid mobile application key'], 403);
             }
             return $next($request);

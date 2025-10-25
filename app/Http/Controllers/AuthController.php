@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\ApiResponse;
-use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -68,24 +67,44 @@ class AuthController extends Controller
         }
     }
 
+    // Login existing user
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+        /* $fields = $request->validate([
+            'email' => 'required|string|email',
+            'password' => 'required|string'
+        ]); */
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email',
+            'password' => 'required|string'
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+        if ($validator->fails()) {
+            //return response()->json(['errors' => $validator->errors()], 422);
+            return ApiResponse::error(422, 'Login failed!', ['error' => $validator->errors()]);
         }
 
-        $user = Auth::user();
-        //$token = $user->createToken('flutterApp')->plainTextToken;
+        $user = User::where('email', $request['email'])->first();
+
+        if (!$user || !Hash::check($request['password'], $user->password)) {
+            /* return response()->json([
+                'message' => 'Invalid credentials'
+            ], 401); */
+            return ApiResponse::error(401, 'Invalid credentials!', ['error' => $validator->errors()]);
+        }
+
+        // create new token
         $token = $user->createToken('mobile-token')->plainTextToken;
-        return response()->json([
+
+        /* return response()->json([
             'user' => $user,
-            'token' => $token,
-        ]);
+            'token' => $token
+        ], 200); */
+        $data = $user->toArray();
+        $data['host_id'] = $user->host->id;
+        $data['token'] = $token;
+        return ApiResponse::success($data, ['message' => 'You are logged in']);
     }
 
     // Logout (revoke current token)

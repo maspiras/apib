@@ -8,17 +8,17 @@ use Illuminate\Validation\ValidationException;
 use Throwable;
 
 
-return Application::configure(basePath: dirname(__DIR__))    
+return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        api: __DIR__ . '/../routes/api.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->api(prepend: [
+        /* $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        ]);
+        ]); */
 
         $middleware->alias([
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
@@ -33,14 +33,14 @@ return Application::configure(basePath: dirname(__DIR__))
         // Handle Validation errors
         $exceptions->render(function (ValidationException $e, $request) {
             if ($request->is('api/*')) {
-                return \App\Helpers\ApiResponse::error(422, 'Validation failed', ['error' => $e->errors()]);                    
+                return \App\Helpers\ApiResponse::error(422, 'Validation failed', ['error' => $e->errors()]);
             }
         });
 
         // Handle 404 errors
         $exceptions->render(function (NotFoundHttpException $e, $request) {
-        //$exceptions->render(function (\Illuminate\Database\Eloquent\ModelNotFoundException $e, $request) {
-        //$exceptions->render(function (Throwable $e, Request $request) {
+            //$exceptions->render(function (\Illuminate\Database\Eloquent\ModelNotFoundException $e, $request) {
+            //$exceptions->render(function (Throwable $e, Request $request) {
             if ($request->is('api/*')) {
                 return \App\Helpers\ApiResponse::error(404, 'Record not found');
                 //return \App\Helpers\ApiResponse::error(404, 'Record not found', ['error' => $e->getMessage()]);

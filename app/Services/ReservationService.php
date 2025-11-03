@@ -381,10 +381,15 @@ class ReservationService implements ReservationServiceInterface
             $changed = 1;
         }else{
                 //$diff = array_diff_assoc($myOldReservedRooms, $datacleaned['rooms']);
-            $diff_rooms = array_diff($myOldReservedRooms, $datacleaned['rooms']);
+            /* $diff_rooms = array_diff($myOldReservedRooms, $datacleaned['rooms']);
             
             if ($diff_rooms) {                
                 $changed = 1;                
+            } */
+            $diff_rooms_order = array_diff($myOldReservedRooms, $datacleaned['rooms']);
+            $diff_rooms_reverse = array_diff($datacleaned['rooms'],$myOldReservedRooms);
+            if(!empty($diff_rooms_order) || !empty($diff_rooms_reverse)){
+                $changed = 1; 
             }
         }
 

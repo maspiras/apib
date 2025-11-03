@@ -24,9 +24,9 @@ class ReservedRoomRepository extends BaseRepository implements ReservedRoomRepos
                             ->orWhereBetween('checkout', [$checkIn, $checkOut]); */
                             $q->where('reserved_roomv2.checkin', '<', $checkOut)
                               ->where('reserved_roomv2.checkout', '>', $checkIn);
-                            if(!is_null($reservationId)){
+                            /* if(!is_null($reservationId)){
                                 $q->where('reserved_roomv2.reservation_id', '!=', $reservationId);
-                            }
+                            } */
                       })
                     //->exists();
                       ->get();

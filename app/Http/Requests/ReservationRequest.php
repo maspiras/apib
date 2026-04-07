@@ -12,6 +12,7 @@ use Illuminate\Validation\Rule;
 use App\Rules\MultipleDateFormat;
 use Carbon\Carbon;
 use Carbon\Exceptions\InvalidFormatException;
+use Illuminate\Support\Facades\Auth;
 
 
 class ReservationRequest extends FormRequest
@@ -35,47 +36,49 @@ class ReservationRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [            
+        return [
             /* 'checkin' => ['required', 'date_format:m/d/Y h:i A'],   //'required|date_format:m/d/Y h:i A', 
             'checkout' => ['required', 'date_format:m/d/Y h:i A'],  //'required|date_format:m/d/Y h:i A', */
-            
+
             'checkin' => ['required', new MultipleDateFormat],
             'checkout' => ['required', new MultipleDateFormat],
-           
+
             'adults' => ['required', 'integer', 'max:300'], //]'integer:strict|max:300',
-            'childs' => ['nullable', 'integer', 'max:100'], 
-            'pets' => ['nullable', 'integer', 'max:200'],                        
-            'fullname' => ['required','string','max:255','min:3'],            
+            'childs' => ['nullable', 'integer', 'max:100'],
+            'pets' => ['nullable', 'integer', 'max:200'],
+            'fullname' => ['required', 'string', 'max:255', 'min:3'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'email' => ['nullable','email','max:255'],
-            'additionalinformation' => ['nullable','string','max:1000'],
-            'rooms' => ['required','array'], // Ensure the input is an array
-            
+            'email' => ['nullable', 'email', 'max:255'],
+            'additionalinformation' => ['nullable', 'string', 'max:1000'],
+            'rooms' => ['required', 'array'], // Ensure the input is an array
+
             // Advanced validation to ensure rooms belong to the user's host
-            
+
             'rooms.*' => [
-                    'required','numeric','distinct',// 'unique:rooms,id',
-                     Rule::exists('rooms', 'id')
-                        ->where(function ($query) {
-                            $query->where('host_id', auth()->user()->host->id);
-                        }), 
-                    
-                ],
+                'required',
+                'numeric',
+                'distinct', // 'unique:rooms,id',
+                Rule::exists('rooms', 'id')
+                    ->where(function ($query) {
+                        $query->where('host_id', Auth::user()->host->id);
+                    }),
+
+            ],
             'bookingsource_id' => ['required', 'integer'],
             //'rateperstay' => ['required','numeric','min:1','decimal:0,2'], 
             'rateperday' => ['required', 'regex:/^\d+(\.\d{1,2})?$/'], //'required|regex:/^\d+(\.\d{1,2})?$/',
-            'typeofpayment' => ['required', 'integer'], 
-            'discount' => ['nullable','numeric','min:0','decimal:0,2'],
-            'discountoption' => ['nullable','numeric','min:0','decimal:0,2'],
-            'tax' => ['nullable','numeric','min:0','decimal:0,2'],
-            'prepayment' => ['nullable','numeric','min:0','decimal:0,2'],
+            'typeofpayment' => ['required', 'integer'],
+            'discount' => ['nullable', 'numeric', 'min:0', 'decimal:0,2'],
+            'discountoption' => ['nullable', 'numeric', 'min:0', 'decimal:0,2'],
+            'tax' => ['nullable', 'numeric', 'min:0', 'decimal:0,2'],
+            'prepayment' => ['nullable', 'numeric', 'min:0', 'decimal:0,2'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            
+
             'fullname.required' => 'Full name is required',
             'fullname.string' => 'Full name must be a string',
             'fullname.max' => 'Full name must not exceed 255 characters',
@@ -83,10 +86,10 @@ class ReservationRequest extends FormRequest
             'email.email' => 'Email format is invalid',
             'email.max' => 'Email must not exceed 255 characters',
             'phone.string' => 'Phone must be a string',
-            'phone.max' => 'Phone must not exceed 20 characters',   
+            'phone.max' => 'Phone must not exceed 20 characters',
             //'rooms.*.unique' => 'One or more selected rooms are invalid',
             'rooms.*.exists' => 'selected room/s do not exist or not available',
-            
+
             //'checkin' => 'required|date_format:Y-m-d|date_format:m/d/Y'   
             /* 'items.required' => 'Please add at least one item.',
             'items.*.name.required' => 'The name for item :position is required.',
@@ -94,7 +97,7 @@ class ReservationRequest extends FormRequest
             'items.*.name.max' => 'The name for item :position cannot exceed :max characters.',
             'items.*.quantity.required' => 'The quantity for item :position is required.',
             'items.*.quantity.integer' => 'The quantity for item :position must be a whole number.',
-            'items.*.quantity.min' => 'The quantity for item :position must be at least :min.', */     
+            'items.*.quantity.min' => 'The quantity for item :position must be at least :min.', */
         ];
     }
 
@@ -111,11 +114,11 @@ class ReservationRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            if($this->normalizeDate($this->checkout)){
-                
+            if ($this->normalizeDate($this->checkout)) {
+
                 $checkin = Carbon::parse($this->checkin);
                 $checkout = Carbon::parse($this->checkout);
-                
+
                 if ($checkout->lessThanOrEqualTo($checkin)) {
                     $validator->errors()->add(
                         'checkout',
@@ -123,7 +126,6 @@ class ReservationRequest extends FormRequest
                     );
                 }
             }
-            
         });
     }
 
@@ -140,14 +142,14 @@ class ReservationRequest extends FormRequest
             $this->merge([
                 'checkin' => $this->normalizeDate($this->checkin),
                 //'checkin' => $this->checkin,
-            ]);            
+            ]);
         }
 
         if ($this->has('checkout')) {
             $this->merge([
                 'checkout' => $this->normalizeDate($this->checkout),
                 //'checkout' => $this->checkout,
-            ]);            
+            ]);
         }
     }
 
@@ -162,7 +164,7 @@ class ReservationRequest extends FormRequest
                 //throw new Exception("Invalid Format");
             }
         } */
-       // Acceptable formats
+        // Acceptable formats
         $formats = [
             //'m/d/Y h:i A', // 12/25/2025 03:00 PM
             'm/d/Y',       // 12/25/2025
@@ -187,5 +189,4 @@ class ReservationRequest extends FormRequest
         }
         return $date; // keep as-is to let validation fail
     }
-    
 }

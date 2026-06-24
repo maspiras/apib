@@ -52,9 +52,12 @@ Route::middleware(['auth:sanctum', 'throttle:60,1', 'usertimezone'])->group(func
     Route::apiResource('user', UserController::class);
     Route::apiResource('reservations', ReservationController::class);
     //});
-});
-//require __DIR__ . '/auth.php';
 
+    
+});
+require __DIR__ . '/auth.php';
+
+/*
 Route::post('/register', [RegisteredUserController::class, 'store'])
     ->middleware('guest')
     ->name('register');
@@ -83,5 +86,26 @@ Route::post('/email/verification-notification', [EmailVerificationNotificationCo
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
+*/    
 
 Route::get('/availability', [AvailabilityController::class, 'check']);
+
+Route::prefix('v1')->group(
+    base_path(
+        'app/Modules/Property/Http/V1/Routes/api_v1.php'
+    )
+);
+
+    /* Route::prefix('v2')
+        ->group(
+            base_path(
+                'app/Modules/Property/Http/V2/routes.php'
+            )
+        );
+
+    Route::prefix('v3')
+        ->group(
+            base_path(
+                'app/Modules/Property/Http/V3/routes.php'
+            )
+        ); */
